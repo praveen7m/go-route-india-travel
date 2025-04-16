@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { Bus, MapPin, MessageSquare, Phone, Home } from "lucide-react";
+import { Bus, MapPin, MessageSquare, Phone, Home, Navigation, Radio } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 
 const BottomNav = () => {
@@ -26,6 +26,16 @@ const BottomNav = () => {
       path: "/city-bus",
     },
     {
+      icon: <Navigation size={20} />,
+      label: "Indoor",
+      path: "/indoor-navigation",
+    },
+    {
+      icon: <Radio size={20} />,
+      label: "Multi",
+      path: "/multi-modal",
+    },
+    {
       icon: <MessageSquare size={20} />,
       label: t("home.chatbot"),
       path: "/chatbot",
@@ -39,7 +49,7 @@ const BottomNav = () => {
 
   return (
     <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-t border-border">
-      <div className="h-16 grid grid-cols-5">
+      <div className="h-16 grid grid-cols-7">
         {navItems.map((item) => (
           <Link
             key={item.path}

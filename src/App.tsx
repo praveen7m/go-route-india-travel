@@ -14,6 +14,8 @@ import RouteBook from "@/pages/RouteBook";
 import CityBus from "@/pages/CityBus";
 import Chatbot from "@/pages/Chatbot";
 import SOS from "@/pages/SOS";
+import IndoorNavigation from "@/pages/IndoorNavigation";
+import MultiModalJourney from "@/pages/MultiModalJourney";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -33,6 +35,8 @@ const App = () => (
                 <Route path="profile" element={<Profile />} />
                 <Route path="route-bus" element={<RouteBook />} />
                 <Route path="city-bus" element={<CityBus />} />
+                <Route path="indoor-navigation" element={<IndoorNavigation />} />
+                <Route path="multi-modal" element={<MultiModalJourney />} />
                 <Route path="chatbot" element={<Chatbot />} />
                 <Route path="sos" element={<SOS />} />
               </Route>

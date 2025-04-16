@@ -1,6 +1,6 @@
 
 import { Link } from "react-router-dom";
-import { Bus, MapPin, MessageSquare, Phone, Star, Calendar, User } from "lucide-react";
+import { Bus, MapPin, MessageSquare, Phone, Star, Calendar, User, Navigation, Radio } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -22,6 +22,20 @@ const Home = () => {
       description: "Track city buses in real-time",
       link: "/city-bus",
       color: "bg-green-50 dark:bg-green-950/30",
+    },
+    {
+      icon: <Navigation size={24} className="text-accent" />,
+      title: "Indoor Navigation",
+      description: "Navigate inside bus & metro stations",
+      link: "/indoor-navigation",
+      color: "bg-purple-50 dark:bg-purple-950/30",
+    },
+    {
+      icon: <Radio size={24} className="text-goroute-orange" />,
+      title: "Multi-Modal Journey",
+      description: "Plan trips using multiple transports",
+      link: "/multi-modal",
+      color: "bg-yellow-50 dark:bg-yellow-950/30",
     },
     {
       icon: <MessageSquare size={24} className="text-goroute-orange" />,
