@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Search, ArrowRight, Users, Clock, RefreshCw, Bus, Star } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import BusSeatSelector from "@/components/bus/BusSeatSelector";
 
 const RouteBook = () => {
   const { t } = useLanguage();
@@ -14,6 +15,11 @@ const RouteBook = () => {
   const [to, setTo] = useState("");
   const [searchResults, setSearchResults] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString("en-US", { year: 'numeric', month: 'short', day: 'numeric' }));
+  
+  // State for seat selector
+  const [seatSelectorOpen, setSeatSelectorOpen] = useState(false);
+  const [selectedBus, setSelectedBus] = useState<any>(null);
 
   const handleSearch = () => {
     if (!from || !to) return;
@@ -25,6 +31,14 @@ const RouteBook = () => {
       setSearchResults(true);
       setIsLoading(false);
     }, 1500);
+  };
+
+  const handleBookNow = (bus: any) => {
+    setSelectedBus({
+      ...bus,
+      date: selectedDate
+    });
+    setSeatSelectorOpen(true);
   };
 
   // Mock bus data
@@ -228,7 +242,11 @@ const RouteBook = () => {
                     <Star className="mr-2 h-4 w-4" />
                     View Route
                   </Button>
-                  <Button variant="ghost" className="rounded-none h-12 text-accent">
+                  <Button 
+                    variant="ghost" 
+                    className="rounded-none h-12 text-accent"
+                    onClick={() => handleBookNow(bus)}
+                  >
                     <Bus className="mr-2 h-4 w-4" />
                     Book Now
                   </Button>
@@ -237,6 +255,23 @@ const RouteBook = () => {
             </Card>
           ))}
         </div>
+      )}
+
+      {/* Seat Selector Dialog */}
+      {selectedBus && (
+        <BusSeatSelector 
+          open={seatSelectorOpen} 
+          onOpenChange={setSeatSelectorOpen}
+          busInfo={{
+            name: selectedBus.name,
+            from: selectedBus.from,
+            to: selectedBus.to,
+            departureTime: selectedBus.departureTime,
+            arrivalTime: selectedBus.arrivalTime,
+            duration: selectedBus.duration,
+            date: selectedDate
+          }}
+        />
       )}
     </div>
   );
