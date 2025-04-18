@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useLanguage } from "@/hooks/useLanguage";
@@ -12,11 +11,9 @@ import {
   Star, StarOff, MapPin, Clock, Bus, Calendar, ChevronRight,
   ArrowRight, Bell, CheckCircle, AlertCircle, Trash2
 } from "lucide-react";
-import { useToast } from "@/components/ui/use-toast";
 
 const SavedRoutes = () => {
   const { t } = useLanguage();
-  const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("saved");
 
   const savedRoutes = [

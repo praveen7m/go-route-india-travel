@@ -336,13 +336,13 @@ const RouteBook = () => {
                         
                         <div className="flex items-center mt-4 gap-2">
                           {bus.amenities.includes("wifi") && (
-                            <Wifi className="h-4 w-4 text-accent" title="Wi-Fi" />
+                            <Wifi className="h-4 w-4 text-accent" aria-label="Wi-Fi" />
                           )}
                           {bus.amenities.includes("usb") && (
                             <div className="text-xs bg-accent/10 text-accent px-2 py-1 rounded">USB</div>
                           )}
                           {bus.amenities.includes("coffee") && (
-                            <Coffee className="h-4 w-4 text-accent" title="Refreshments" />
+                            <Coffee className="h-4 w-4 text-accent" aria-label="Refreshments" />
                           )}
                           {bus.womensOnly && (
                             <Badge variant="outline" className="bg-pink-50 text-pink-600 border-pink-200">
