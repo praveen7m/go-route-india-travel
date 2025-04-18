@@ -6,21 +6,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { 
-  MapPin, Search, RefreshCw, Bus, Clock, BellRing, Users, ArrowRight 
+  MapPin, Search, RefreshCw, Bus, Clock, BellRing, Users, ArrowRight, 
+  AlertCircle
 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 const CityBus = () => {
   const { t } = useLanguage();
-  const { toast } = useToast();
-  const [stopName, setStopName] = useState("");
+  const [fromLocation, setFromLocation] = useState("");
+  const [toLocation, setToLocation] = useState("");
   const [searchResults, setSearchResults] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSearch = () => {
-    if (!stopName) return;
+    if (!fromLocation || !toLocation) {
+      toast("Please enter both from and to locations");
+      return;
+    }
     
     setIsLoading(true);
     
@@ -32,9 +36,8 @@ const CityBus = () => {
   };
 
   const handleWakeMeUp = (busNumber: string) => {
-    toast({
-      title: "Wake Me Up Activated",
-      description: `You'll be notified before ${busNumber} arrives at your stop.`,
+    toast.success("Wake Me Up Activated", {
+      description: `You'll be notified before ${busNumber} arrives at your stop.`
     });
   };
 
@@ -47,6 +50,9 @@ const CityBus = () => {
       arrivalTime: "5 mins",
       nextBus: "15 mins",
       crowdLevel: "low",
+      cost: "₹35",
+      distance: "7.2 km",
+      estimatedTime: "25 mins"
     },
     {
       id: 2,
@@ -55,6 +61,9 @@ const CityBus = () => {
       arrivalTime: "12 mins",
       nextBus: "25 mins",
       crowdLevel: "medium",
+      cost: "₹45",
+      distance: "12.5 km",
+      estimatedTime: "40 mins"
     },
     {
       id: 3,
@@ -63,19 +72,48 @@ const CityBus = () => {
       arrivalTime: "20 mins",
       nextBus: "40 mins",
       crowdLevel: "high",
+      cost: "₹50",
+      distance: "15.8 km",
+      estimatedTime: "55 mins"
     },
   ];
 
   const getCrowdBadge = (level: string) => {
     switch (level) {
       case "low":
-        return <Badge variant="outline" className="go-badge-green">Low Crowd</Badge>;
+        return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">Low Crowd</Badge>;
       case "medium":
-        return <Badge variant="outline" className="go-badge-orange">Medium Crowd</Badge>;
+        return <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200">Medium Crowd</Badge>;
       case "high":
-        return <Badge variant="outline" className="go-badge-red">High Crowd</Badge>;
+        return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">High Crowd</Badge>;
       default:
         return null;
+    }
+  };
+
+  const getCrowdBarColor = (level: string) => {
+    switch (level) {
+      case "low": 
+        return "bg-green-500";
+      case "medium": 
+        return "bg-orange-500";
+      case "high": 
+        return "bg-red-500";
+      default:
+        return "bg-gray-500";
+    }
+  };
+
+  const getCrowdBarWidth = (level: string) => {
+    switch (level) {
+      case "low": 
+        return "30%";
+      case "medium": 
+        return "60%";
+      case "high": 
+        return "90%";
+      default:
+        return "0%";
     }
   };
 
@@ -90,15 +128,29 @@ const CityBus = () => {
         <CardContent className="p-6">
           <div className="space-y-4">
             <div className="space-y-2">
-              <Label htmlFor="stop">{t("routeBus.from")}</Label>
+              <Label htmlFor="from">From Location</Label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <Input
-                  id="stop"
-                  placeholder="Enter bus stop or area"
+                  id="from"
+                  placeholder="Enter your starting point"
                   className="pl-9"
-                  value={stopName}
-                  onChange={(e) => setStopName(e.target.value)}
+                  value={fromLocation}
+                  onChange={(e) => setFromLocation(e.target.value)}
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="to">To Location</Label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  id="to"
+                  placeholder="Enter your destination"
+                  className="pl-9"
+                  value={toLocation}
+                  onChange={(e) => setToLocation(e.target.value)}
                 />
               </div>
             </div>
@@ -106,7 +158,7 @@ const CityBus = () => {
             <Button 
               className="w-full" 
               onClick={handleSearch}
-              disabled={!stopName || isLoading}
+              disabled={!fromLocation || !toLocation || isLoading}
             >
               {isLoading ? (
                 <>
@@ -127,7 +179,7 @@ const CityBus = () => {
       {searchResults && (
         <div className="space-y-3">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-semibold">Buses at {stopName}</h2>
+            <h2 className="text-lg font-semibold">Buses from {fromLocation} to {toLocation}</h2>
             <Button variant="ghost" size="sm" className="text-muted-foreground">
               <RefreshCw className="mr-2 h-4 w-4" />
               Refresh
@@ -135,7 +187,16 @@ const CityBus = () => {
           </div>
 
           {buses.map((bus) => (
-            <Card key={bus.id} className="go-card-hover overflow-hidden">
+            <Card 
+              key={bus.id} 
+              className={`go-card-hover overflow-hidden ${
+                bus.crowdLevel === "low" 
+                  ? "border-green-200 bg-green-50/30 dark:bg-green-950/10" 
+                  : bus.crowdLevel === "medium" 
+                  ? "border-orange-200 bg-orange-50/30 dark:bg-orange-950/10" 
+                  : "border-red-200 bg-red-50/30 dark:bg-red-950/10"
+              }`}
+            >
               <CardContent className="p-4">
                 <div className="flex justify-between items-start mb-4">
                   <div>
@@ -145,12 +206,26 @@ const CityBus = () => {
                       </Badge>
                       <h3 className="font-medium">{bus.route}</h3>
                     </div>
+                    <div className="grid grid-cols-3 gap-2 mt-2">
+                      <div className="text-sm">
+                        <span className="text-muted-foreground">Cost:</span>
+                        <div className="font-medium">{bus.cost}</div>
+                      </div>
+                      <div className="text-sm">
+                        <span className="text-muted-foreground">Distance:</span>
+                        <div className="font-medium">{bus.distance}</div>
+                      </div>
+                      <div className="text-sm">
+                        <span className="text-muted-foreground">Time:</span>
+                        <div className="font-medium">{bus.estimatedTime}</div>
+                      </div>
+                    </div>
                     <p className="text-sm text-muted-foreground mt-1">
                       Next: {bus.nextBus}
                     </p>
                   </div>
                   <div className="text-right">
-                    <div className="flex items-center gap-1 text-lg font-semibold text-goroute-green">
+                    <div className="flex items-center gap-1 text-lg font-semibold text-green-600">
                       <Clock className="h-4 w-4" />
                       {bus.arrivalTime}
                     </div>
@@ -159,26 +234,15 @@ const CityBus = () => {
                 </div>
 
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <Users className="h-4 w-4 text-muted-foreground mr-1" />
-                    <div className="h-2 bg-muted rounded-full w-16 overflow-hidden">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4 text-muted-foreground" />
+                    <div className="h-2 bg-muted rounded-full w-32 overflow-hidden">
                       <div 
-                        className={`h-full rounded-full ${
-                          bus.crowdLevel === "low" 
-                            ? "bg-goroute-green" 
-                            : bus.crowdLevel === "medium" 
-                            ? "bg-goroute-orange" 
-                            : "bg-goroute-red"
-                        }`}
-                        style={{ width: `${
-                          bus.crowdLevel === "low" 
-                            ? "30%" 
-                            : bus.crowdLevel === "medium" 
-                            ? "60%" 
-                            : "90%"
-                        }` }}
+                        className={`h-full rounded-full ${getCrowdBarColor(bus.crowdLevel)}`}
+                        style={{ width: getCrowdBarWidth(bus.crowdLevel) }}
                       />
                     </div>
+                    <span className="text-xs text-muted-foreground">{bus.crowdLevel} crowd</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <div className="flex items-center gap-2">

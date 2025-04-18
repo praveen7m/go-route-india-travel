@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import WaitlistModal from "@/components/bus/WaitlistModal";
 import WakeMeUpModal from "@/components/bus/WakeMeUpModal";
+import BusTrackingView from "@/components/bus/BusTrackingView";
 
 const RouteBook = () => {
   const navigate = useNavigate();
@@ -31,6 +32,7 @@ const RouteBook = () => {
   const [isWaitlisted, setIsWaitlisted] = useState(false);
   const [showWaitlistModal, setShowWaitlistModal] = useState(false);
   const [showWakeMeUpModal, setShowWakeMeUpModal] = useState(false);
+  const [showTrackingView, setShowTrackingView] = useState(false);
   const [wakeMeUpBus, setWakeMeUpBus] = useState<any | null>(null);
   
   const handleGenderSubmit = () => {
@@ -71,8 +73,9 @@ const RouteBook = () => {
     
     // Otherwise, proceed with booking
     setSelectedBus(bus);
-    toast("Proceeding to seat selection");
-    navigate(`/bus-seat-selection?bus=${bus.number}&from=${fromCity}&to=${toCity}`);
+    // Simulate booking process
+    toast.success("Booking confirmed! You can now track your bus.");
+    setShowTrackingView(true);
   };
   
   const handleJoinWaitlist = (bus: any) => {
@@ -83,6 +86,10 @@ const RouteBook = () => {
   const handleWakeMeUp = (bus: any) => {
     setWakeMeUpBus(bus);
     setShowWakeMeUpModal(true);
+  };
+  
+  const handleCloseTracking = () => {
+    setShowTrackingView(false);
   };
   
   // Mock bus data
@@ -135,6 +142,69 @@ const RouteBook = () => {
       rating: 4.7,
       womensOnly: true
     },
+  ];
+
+  // Mock bus stop data for tracking view
+  const busStops = [
+    {
+      name: "Bengaluru Central",
+      arrivalTime: "21:00",
+      departureTime: "21:00",
+      distance: "0 km",
+      isPassed: true,
+      isNext: false,
+      platform: "1"
+    },
+    {
+      name: "Electronic City",
+      arrivalTime: "21:30",
+      departureTime: "21:35",
+      distance: "18 km",
+      isPassed: true,
+      isNext: false
+    },
+    {
+      name: "Hosur",
+      arrivalTime: "22:15",
+      departureTime: "22:20",
+      distance: "40 km",
+      isPassed: false,
+      isNext: true
+    },
+    {
+      name: "Krishnagiri",
+      arrivalTime: "23:00",
+      departureTime: "23:10",
+      distance: "95 km",
+      isPassed: false,
+      isNext: false
+    },
+    {
+      name: "Vellore",
+      arrivalTime: "01:30",
+      departureTime: "01:40",
+      distance: "180 km",
+      isPassed: false,
+      isNext: false,
+      status: "delayed"
+    },
+    {
+      name: "Sriperumbudur",
+      arrivalTime: "03:45",
+      departureTime: "03:50",
+      distance: "250 km",
+      isPassed: false,
+      isNext: false
+    },
+    {
+      name: "Chennai Central",
+      arrivalTime: "05:30",
+      departureTime: "05:30",
+      distance: "345 km",
+      isPassed: false,
+      isNext: false,
+      platform: "3A"
+    }
   ];
   
   return (
@@ -213,7 +283,7 @@ const RouteBook = () => {
             
             <div className="space-y-4">
               <div className="bg-yellow-50 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-200 p-4 rounded-md flex items-start space-x-3">
-                <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+                <AlertTriangle className="h-5 w-5 flex-shrink-0" aria-label="Warning" />
                 <div>
                   <p className="font-medium mb-1">Women's Safety Feature</p>
                   <p className="text-sm">
@@ -300,7 +370,10 @@ const RouteBook = () => {
               {buses
                 .filter(bus => genderPreference !== "womens_only" || bus.womensOnly || !bus.womensOnly)
                 .map((bus) => (
-                  <Card key={bus.id} className="go-card-hover overflow-hidden">
+                  <Card 
+                    key={bus.id} 
+                    className={`go-card-hover overflow-hidden ${bus.womensOnly ? 'border-pink-300 bg-pink-50/30 dark:bg-pink-950/10' : ''}`}
+                  >
                     <CardContent className="p-0">
                       <div className="p-4">
                         <div className="flex justify-between items-start">
@@ -463,6 +536,17 @@ const RouteBook = () => {
             destination: wakeMeUpBus.to,
             arrivalTime: wakeMeUpBus.arrival
           }}
+        />
+      )}
+
+      {showTrackingView && selectedBus && (
+        <BusTrackingView
+          busName={selectedBus.type}
+          busNumber={selectedBus.number}
+          fromTo={`${selectedBus.from} to ${selectedBus.to}`}
+          currentDate={travelDate}
+          stops={busStops}
+          onClose={handleCloseTracking}
         />
       )}
     </div>

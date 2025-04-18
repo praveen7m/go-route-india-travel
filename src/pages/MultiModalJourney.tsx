@@ -4,20 +4,22 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Search, ArrowRight, Clock, Train, Bus, Bike, Car, User } from "lucide-react";
+import { MapPin, Search, ArrowRight, Clock, Train, Bus, Bike, Car, User, Truck, RefreshCw } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import { useToast } from "@/components/ui/use-toast";
+import { toast } from "sonner";
 
 const MultiModalJourney = () => {
   const { t } = useLanguage();
-  const { toast } = useToast();
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
   const [searchResults, setSearchResults] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
 
   const handleSearch = () => {
-    if (!from || !to) return;
+    if (!from || !to) {
+      toast("Please enter both starting location and destination");
+      return;
+    }
     
     setIsLoading(true);
     
@@ -28,7 +30,7 @@ const MultiModalJourney = () => {
     }, 1500);
   };
 
-  // Mock journey options structured similarly to Citymapper
+  // Mock transport mode options
   const transportModes = [
     {
       id: 1,
@@ -56,6 +58,7 @@ const MultiModalJourney = () => {
     }
   ];
   
+  // Mock journey options
   const journeyOptions = [
     {
       id: 1,
@@ -64,7 +67,9 @@ const MultiModalJourney = () => {
       ],
       price: "₹1.19",
       duration: "14",
-      infoLine: "in 0, 1, 6 mins from Opp Customs Port Br Hq"
+      infoLine: "in 0, 1, 6 mins from Opp Customs Port Br Hq",
+      backgroundColor: "bg-green-50 dark:bg-green-950/10",
+      borderColor: "border-green-200 dark:border-green-900"
     },
     {
       id: 2,
@@ -74,7 +79,9 @@ const MultiModalJourney = () => {
       ],
       price: "₹1.19",
       duration: "28",
-      infoLine: "in 2, 5, 13 mins from Bef The Pinnacle@Duxton"
+      infoLine: "in 2, 5, 13 mins from Bef The Pinnacle@Duxton",
+      backgroundColor: "bg-blue-50 dark:bg-blue-950/10",
+      borderColor: "border-blue-200 dark:border-blue-900"
     },
     {
       id: 3,
@@ -84,7 +91,9 @@ const MultiModalJourney = () => {
       ],
       price: "₹1.29",
       duration: "28",
-      infoLine: "in 6, 7, 18 mins from Opp Fuji Xerox Twrs"
+      infoLine: "in 6, 7, 18 mins from Opp Fuji Xerox Twrs",
+      backgroundColor: "bg-purple-50 dark:bg-purple-950/10",
+      borderColor: "border-purple-200 dark:border-purple-900"
     },
     {
       id: 4,
@@ -94,7 +103,9 @@ const MultiModalJourney = () => {
       ],
       price: "₹1.29",
       duration: "28",
-      infoLine: "in 10, 15, 23 mins from Opp Mas Bldg"
+      infoLine: "in 10, 15, 23 mins from Opp Mas Bldg",
+      backgroundColor: "bg-amber-50 dark:bg-amber-950/10",
+      borderColor: "border-amber-200 dark:border-amber-900"
     },
     {
       id: 5,
@@ -104,9 +115,18 @@ const MultiModalJourney = () => {
       ],
       price: "₹1.29",
       duration: "28",
-      infoLine: "in 10, 15, 23 mins from Opp Mas Bldg"
+      infoLine: "in 10, 15, 23 mins from Opp Mas Bldg",
+      backgroundColor: "bg-cyan-50 dark:bg-cyan-950/10",
+      borderColor: "border-cyan-200 dark:border-cyan-900"
     }
   ];
+
+  const handleSelectOption = (journeyId: number) => {
+    const journey = journeyOptions.find(j => j.id === journeyId);
+    toast.success(`Journey option selected!`, {
+      description: `${journey?.routes.length === 1 ? 'Direct route' : 'Route with transfers'} - ${journey?.duration} mins travel time`
+    });
+  };
 
   return (
     <div className="go-container space-y-6">
@@ -159,10 +179,7 @@ const MultiModalJourney = () => {
             >
               {isLoading ? (
                 <span className="flex items-center">
-                  <svg className="animate-spin -ml-1 mr-2 h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
+                  <RefreshCw className="animate-spin -ml-1 mr-2 h-4 w-4" />
                   Searching...
                 </span>
               ) : (
@@ -178,7 +195,7 @@ const MultiModalJourney = () => {
 
       {searchResults && (
         <div className="space-y-3">
-          {/* Transport Mode Options - Similar to Citymapper Top Section */}
+          {/* Transport Mode Options */}
           <Card className="bg-green-500 text-white overflow-hidden">
             <CardContent className="p-0">
               <div className="grid grid-cols-3">
@@ -198,11 +215,14 @@ const MultiModalJourney = () => {
             </CardContent>
           </Card>
           
-          <h2 className="text-lg font-semibold">Suggested</h2>
+          <h2 className="text-lg font-semibold">Suggested Routes</h2>
           
-          {/* Journey Options - Similar to Citymapper List */}
+          {/* Journey Options */}
           {journeyOptions.map((journey) => (
-            <Card key={journey.id} className="bg-white overflow-hidden">
+            <Card 
+              key={journey.id} 
+              className={`overflow-hidden hover:shadow-md transition-shadow ${journey.backgroundColor} ${journey.borderColor}`}
+            >
               <CardContent className="p-4">
                 <div className="flex justify-between items-center mb-3">
                   <div className="flex items-center gap-2">
@@ -232,6 +252,15 @@ const MultiModalJourney = () => {
                 <div className="text-xs text-yellow-600">
                   <Clock className="h-3 w-3 inline mr-1" />
                   {journey.infoLine}
+                </div>
+                <div className="mt-3 flex justify-end">
+                  <Button 
+                    size="sm" 
+                    onClick={() => handleSelectOption(journey.id)}
+                    className="bg-accent hover:bg-accent/90"
+                  >
+                    Select Route
+                  </Button>
                 </div>
               </CardContent>
             </Card>
