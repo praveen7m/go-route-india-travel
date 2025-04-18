@@ -1,9 +1,9 @@
-
 import { Link } from "react-router-dom";
 import { Bus, MapPin, MessageSquare, Phone, Star, Calendar, User, Navigation, Radio } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import GoRouteLogo from "@/components/GoRouteLogo";
 
 const Home = () => {
   const { t } = useLanguage();
@@ -80,10 +80,7 @@ const Home = () => {
   return (
     <div className="go-container space-y-8 pb-10">
       <section className="space-y-4">
-        <h1 className="text-2xl font-bold text-center md:text-left">
-          Welcome to <span className="text-accent">Go</span>
-          <span className="text-goroute-orange">Route</span>
-        </h1>
+        <GoRouteLogo className="h-12 w-auto mx-auto md:mx-0" />
         <p className="text-center md:text-left text-muted-foreground">
           Your one-stop solution for public transport in India
         </p>

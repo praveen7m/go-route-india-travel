@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -17,6 +16,7 @@ import { Phone, Mail, ChevronRight } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { useTheme } from "@/components/theme-provider";
 import LanguageSwitcher from "@/components/layout/LanguageSwitcher";
+import GoRouteLogo from "@/components/GoRouteLogo";
 
 const Login = () => {
   const navigate = useNavigate();
@@ -96,13 +96,7 @@ const Login = () => {
       
       <div className="w-full max-w-md">
         <div className="text-center mb-8 animate-fade-in">
-          <h1 className="text-3xl font-bold mb-2">
-            <span className="text-accent">Go</span>
-            <span className="text-goroute-orange">Route</span>
-          </h1>
-          <p className="text-muted-foreground">
-            Your Travel Companion Across India
-          </p>
+          <GoRouteLogo className="mx-auto mb-4 h-16 w-auto" />
         </div>
         
         <Card className="shadow-lg animate-fade-in">

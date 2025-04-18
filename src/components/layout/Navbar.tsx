@@ -1,4 +1,3 @@
-
 import { Link } from "react-router-dom";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
@@ -16,7 +15,11 @@ const Navbar = () => {
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <img src="/lovable-uploads/3071a404-b112-46bb-a997-1f5fed14f69d.png" alt="GoRoute" className="h-8" />
+          <img 
+            src="/lovable-uploads/goroute-logo.png" 
+            alt="GoRoute Logo" 
+            className="h-10 w-auto" 
+          />
         </Link>
 
         <div className="hidden md:flex items-center gap-4">
