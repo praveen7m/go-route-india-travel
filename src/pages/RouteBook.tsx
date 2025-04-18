@@ -1,14 +1,17 @@
+
 import { useState } from "react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Search, ArrowRight, Users, Clock, RefreshCw, Bus, Star, Route, Calendar } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { MapPin, Search, ArrowRight, Users, Clock, RefreshCw, Bus, Star, Route, Calendar, Female } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import BusSeatSelector from "@/components/bus/BusSeatSelector";
 import BusTrackingView from "@/components/bus/BusTrackingView";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { toast } from "@/components/ui/sonner";
 
 const RouteBook = () => {
   const { t } = useLanguage();
@@ -17,6 +20,9 @@ const RouteBook = () => {
   const [searchResults, setSearchResults] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString("en-US", { year: 'numeric', month: 'short', day: 'numeric' }));
+  const [genderPreference, setGenderPreference] = useState<string>("");
+  const [showSearchForm, setShowSearchForm] = useState(true);
+  const [showGenderForm, setShowGenderForm] = useState(false);
   
   // State for seat selector
   const [seatSelectorOpen, setSeatSelectorOpen] = useState(false);
@@ -25,6 +31,9 @@ const RouteBook = () => {
   // State for bus tracking view
   const [trackingViewOpen, setTrackingViewOpen] = useState(false);
   const [selectedBusForTracking, setSelectedBusForTracking] = useState<any>(null);
+  
+  // Waitlist state
+  const [isWaitlisted, setIsWaitlisted] = useState(false);
 
   const handleSearch = () => {
     if (!from || !to) return;
@@ -33,12 +42,57 @@ const RouteBook = () => {
     
     // Simulate API call
     setTimeout(() => {
+      setShowSearchForm(false);
+      setShowGenderForm(true);
+      setIsLoading(false);
+    }, 1000);
+  };
+  
+  const handleGenderSubmit = () => {
+    if (!genderPreference) {
+      toast({
+        title: "Please select a preference",
+        description: "Gender preference is required for your safety and comfort.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    setIsLoading(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setShowGenderForm(false);
       setSearchResults(true);
       setIsLoading(false);
-    }, 1500);
+      
+      // Show a confirmation toast
+      toast({
+        title: "Preference applied",
+        description: genderPreference === "womens_only" 
+          ? "Showing women's special buses and regular buses." 
+          : "Showing all available buses.",
+      });
+    }, 1000);
+  };
+  
+  const handleBackToSearch = () => {
+    setShowSearchForm(true);
+    setShowGenderForm(false);
+    setSearchResults(false);
   };
 
   const handleBookNow = (bus: any) => {
+    // Check if bus is full
+    if (bus.available === 0) {
+      toast({
+        title: "Bus is full",
+        description: "Would you like to join the waitlist?",
+      });
+      setIsWaitlisted(true);
+      return;
+    }
+    
     setSelectedBus({
       ...bus,
       date: selectedDate
@@ -46,12 +100,20 @@ const RouteBook = () => {
     setSeatSelectorOpen(true);
   };
   
+  const handleJoinWaitlist = (bus: any) => {
+    toast({
+      title: "Added to waitlist",
+      description: "We'll notify you if a seat becomes available.",
+    });
+    setIsWaitlisted(true);
+  };
+  
   const handleViewRoute = (bus: any) => {
     setSelectedBusForTracking(bus);
     setTrackingViewOpen(true);
   };
-
-  // Mock bus data
+  
+  // Enhanced bus data with color and waitlist info
   const buses = [
     {
       id: 1,
@@ -68,6 +130,8 @@ const RouteBook = () => {
       isWomensSpecial: false,
       crowdLevel: "low",
       busNumber: "KA-01-F-7771",
+      color: "bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800",
+      accentColor: "text-blue-600 dark:text-blue-400",
       stops: [
         { name: "Bangalore", arrivalTime: "08:30 AM", departureTime: "08:30 AM", distance: "0 km", isPassed: true, isNext: false },
         { name: "Electronic City", arrivalTime: "09:00 AM", departureTime: "09:05 AM", distance: "27 km", isPassed: true, isNext: false },
@@ -92,6 +156,8 @@ const RouteBook = () => {
       total: 38,
       isWomensSpecial: true,
       crowdLevel: "medium",
+      color: "bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800",
+      accentColor: "text-purple-600 dark:text-purple-400",
     },
     {
       id: 3,
@@ -103,10 +169,13 @@ const RouteBook = () => {
       arrivalTime: "04:30 AM",
       duration: "6h",
       price: 550,
-      available: 20,
+      available: 0,
       total: 36,
       isWomensSpecial: false,
       crowdLevel: "high",
+      color: "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800",
+      accentColor: "text-green-600 dark:text-green-400",
+      waitlist: 3,
     },
   ];
 
@@ -143,95 +212,155 @@ const RouteBook = () => {
         </TabsList>
         
         <TabsContent value="search" className="space-y-4 mt-4">
-          <Card>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="from">{t("routeBus.from")}</Label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="from"
-                      placeholder="Enter starting location"
-                      className="pl-9"
-                      value={from}
-                      onChange={(e) => setFrom(e.target.value)}
-                    />
+          {showSearchForm && (
+            <Card>
+              <CardContent className="p-6">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="from">{t("routeBus.from")}</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="from"
+                        placeholder="Enter starting location"
+                        className="pl-9"
+                        value={from}
+                        onChange={(e) => setFrom(e.target.value)}
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <div className="flex justify-center">
-                  <div className="h-6 w-6 rounded-full flex items-center justify-center border">
-                    <ArrowRight className="h-3 w-3" />
+                  <div className="flex justify-center">
+                    <div className="h-6 w-6 rounded-full flex items-center justify-center border">
+                      <ArrowRight className="h-3 w-3" />
+                    </div>
                   </div>
-                </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="to">{t("routeBus.to")}</Label>
-                  <div className="relative">
-                    <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="to"
-                      placeholder="Enter destination"
-                      className="pl-9"
-                      value={to}
-                      onChange={(e) => setTo(e.target.value)}
-                    />
+                  <div className="space-y-2">
+                    <Label htmlFor="to">{t("routeBus.to")}</Label>
+                    <div className="relative">
+                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="to"
+                        placeholder="Enter destination"
+                        className="pl-9"
+                        value={to}
+                        onChange={(e) => setTo(e.target.value)}
+                      />
+                    </div>
                   </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="date">Travel Date</Label>
-                  <div className="relative">
-                    <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="date"
-                      placeholder="Select date"
-                      className="pl-9"
-                      value={selectedDate}
-                      readOnly
-                    />
+                  
+                  <div className="space-y-2">
+                    <Label htmlFor="date">Travel Date</Label>
+                    <div className="relative">
+                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                      <Input
+                        id="date"
+                        placeholder="Select date"
+                        className="pl-9"
+                        value={selectedDate}
+                        readOnly
+                      />
+                    </div>
                   </div>
-                </div>
 
-                <Button 
-                  className="w-full" 
-                  onClick={handleSearch}
-                  disabled={!from || !to || isLoading}
-                >
-                  {isLoading ? (
-                    <>
-                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                      Searching...
-                    </>
-                  ) : (
-                    <>
-                      <Search className="mr-2 h-4 w-4" />
-                      {t("routeBus.findBuses")}
-                    </>
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                  <Button 
+                    className="w-full" 
+                    onClick={handleSearch}
+                    disabled={!from || !to || isLoading}
+                  >
+                    {isLoading ? (
+                      <>
+                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                        Searching...
+                      </>
+                    ) : (
+                      <>
+                        <Search className="mr-2 h-4 w-4" />
+                        {t("routeBus.findBuses")}
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+          
+          {showGenderForm && (
+            <Card>
+              <CardContent className="p-6">
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-medium">Gender Preference</h3>
+                    <p className="text-sm text-muted-foreground mt-1">
+                      For your safety and comfort, please select a preference.
+                    </p>
+                  </div>
+                  
+                  <RadioGroup 
+                    value={genderPreference}
+                    onValueChange={setGenderPreference}
+                    className="space-y-4"
+                  >
+                    <div className="flex items-center space-x-2 rounded-md border p-3 cursor-pointer hover:bg-accent/10">
+                      <RadioGroupItem value="womens_only" id="womens_only" />
+                      <Label htmlFor="womens_only" className="flex items-center cursor-pointer">
+                        <Female className="h-4 w-4 mr-2 text-pink-500" />
+                        Women's Special Buses (Recommended for women travellers)
+                      </Label>
+                    </div>
+                    <div className="flex items-center space-x-2 rounded-md border p-3 cursor-pointer hover:bg-accent/10">
+                      <RadioGroupItem value="all_buses" id="all_buses" />
+                      <Label htmlFor="all_buses" className="cursor-pointer">Show all available buses</Label>
+                    </div>
+                  </RadioGroup>
+                  
+                  <div className="flex gap-2">
+                    <Button 
+                      variant="outline"
+                      onClick={handleBackToSearch}
+                      className="flex-1"
+                    >
+                      Back
+                    </Button>
+                    <Button 
+                      className="flex-1" 
+                      onClick={handleGenderSubmit}
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        <>
+                          <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                          Loading...
+                        </>
+                      ) : (
+                        <>Continue</>
+                      )}
+                    </Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
 
           {searchResults && (
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h2 className="text-lg font-semibold">Available Buses</h2>
-                <Button variant="ghost" size="sm" className="text-muted-foreground">
-                  <RefreshCw className="mr-2 h-4 w-4" />
-                  Refresh
+                <Button variant="outline" size="sm" onClick={handleBackToSearch}>
+                  Change Search
                 </Button>
               </div>
 
-              {buses.map((bus) => (
-                <Card key={bus.id} className="go-card-hover overflow-hidden">
+              {buses
+                .filter(bus => genderPreference !== "womens_only" || bus.isWomensSpecial || !bus.isWomensSpecial)
+                .map((bus) => (
+                <Card key={bus.id} className={`go-card-hover overflow-hidden border ${bus.color}`}>
                   <CardContent className="p-0">
                     <div className="p-4">
                       <div className="flex justify-between items-start mb-3">
                         <div>
-                          <h3 className="font-semibold flex items-center">
+                          <h3 className={`font-semibold flex items-center ${bus.accentColor}`}>
                             {bus.name}
                             {bus.isWomensSpecial && (
                               <Badge variant="secondary" className="ml-2 bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-100">
@@ -243,7 +372,10 @@ const RouteBook = () => {
                         </div>
                         <div className="text-right">
                           <p className="font-semibold">₹{bus.price}</p>
-                          <p className="text-xs text-muted-foreground">{bus.available} seats left</p>
+                          <p className="text-xs text-muted-foreground">
+                            {bus.available > 0 ? `${bus.available} seats left` : "Full"}
+                            {bus.waitlist > 0 && ` (${bus.waitlist} in waitlist)`}
+                          </p>
                         </div>
                       </div>
 
@@ -293,14 +425,25 @@ const RouteBook = () => {
                         <Route className="mr-2 h-4 w-4" />
                         View Route
                       </Button>
-                      <Button 
-                        variant="ghost" 
-                        className="rounded-none h-12 text-accent"
-                        onClick={() => handleBookNow(bus)}
-                      >
-                        <Bus className="mr-2 h-4 w-4" />
-                        Book Now
-                      </Button>
+                      {bus.available > 0 ? (
+                        <Button 
+                          variant="ghost" 
+                          className={`rounded-none h-12 ${bus.accentColor}`}
+                          onClick={() => handleBookNow(bus)}
+                        >
+                          <Bus className="mr-2 h-4 w-4" />
+                          Book Now
+                        </Button>
+                      ) : (
+                        <Button 
+                          variant="ghost" 
+                          className="rounded-none h-12 text-amber-600"
+                          onClick={() => handleJoinWaitlist(bus)}
+                        >
+                          <Clock className="mr-2 h-4 w-4" />
+                          Join Waitlist
+                        </Button>
+                      )}
                     </div>
                   </CardContent>
                 </Card>
