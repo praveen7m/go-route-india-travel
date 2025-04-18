@@ -49,10 +49,7 @@ const RouteBook = () => {
   
   const handleGenderSubmit = () => {
     if (!genderPreference) {
-      toast({
-        description: "Gender preference is required for your safety and comfort.",
-        variant: "destructive"
-      });
+      toast("Gender preference is required for your safety and comfort.");
       return;
     }
     
@@ -65,11 +62,11 @@ const RouteBook = () => {
       setIsLoading(false);
       
       // Show a confirmation toast
-      toast({
-        description: genderPreference === "womens_only" 
-          ? "Showing women's special buses and regular buses." 
-          : "Showing all available buses."
-      });
+      if (genderPreference === "womens_only") {
+        toast("Showing women's special buses and regular buses.");
+      } else {
+        toast("Showing all available buses.");
+      }
     }, 1000);
   };
   
@@ -82,9 +79,7 @@ const RouteBook = () => {
   const handleBookNow = (bus: any) => {
     // Check if bus is full
     if (bus.available === 0) {
-      toast({
-        description: "Bus is full. Would you like to join the waitlist?"
-      });
+      toast("Bus is full. Would you like to join the waitlist?");
       setIsWaitlisted(true);
       return;
     }
@@ -97,9 +92,7 @@ const RouteBook = () => {
   };
   
   const handleJoinWaitlist = (bus: any) => {
-    toast({
-      description: "We'll notify you if a seat becomes available."
-    });
+    toast("We'll notify you if a seat becomes available.");
     setIsWaitlisted(true);
   };
   
