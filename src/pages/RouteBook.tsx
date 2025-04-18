@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
@@ -6,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent } from "@/components/ui/card";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { MapPin, Search, ArrowRight, Users, Clock, RefreshCw, Bus, Star, Route, Calendar, Female } from "lucide-react";
+import { MapPin, Search, ArrowRight, Users, Clock, RefreshCw, Bus, Star, Route, Calendar, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import BusSeatSelector from "@/components/bus/BusSeatSelector";
 import BusTrackingView from "@/components/bus/BusTrackingView";
@@ -51,7 +50,6 @@ const RouteBook = () => {
   const handleGenderSubmit = () => {
     if (!genderPreference) {
       toast({
-        title: "Please select a preference",
         description: "Gender preference is required for your safety and comfort.",
         variant: "destructive"
       });
@@ -68,10 +66,9 @@ const RouteBook = () => {
       
       // Show a confirmation toast
       toast({
-        title: "Preference applied",
         description: genderPreference === "womens_only" 
           ? "Showing women's special buses and regular buses." 
-          : "Showing all available buses.",
+          : "Showing all available buses."
       });
     }, 1000);
   };
@@ -86,8 +83,7 @@ const RouteBook = () => {
     // Check if bus is full
     if (bus.available === 0) {
       toast({
-        title: "Bus is full",
-        description: "Would you like to join the waitlist?",
+        description: "Bus is full. Would you like to join the waitlist?"
       });
       setIsWaitlisted(true);
       return;
@@ -102,8 +98,7 @@ const RouteBook = () => {
   
   const handleJoinWaitlist = (bus: any) => {
     toast({
-      title: "Added to waitlist",
-      description: "We'll notify you if a seat becomes available.",
+      description: "We'll notify you if a seat becomes available."
     });
     setIsWaitlisted(true);
   };
@@ -305,7 +300,7 @@ const RouteBook = () => {
                     <div className="flex items-center space-x-2 rounded-md border p-3 cursor-pointer hover:bg-accent/10">
                       <RadioGroupItem value="womens_only" id="womens_only" />
                       <Label htmlFor="womens_only" className="flex items-center cursor-pointer">
-                        <Female className="h-4 w-4 mr-2 text-pink-500" />
+                        <User className="h-4 w-4 mr-2 text-pink-500" />
                         Women's Special Buses (Recommended for women travellers)
                       </Label>
                     </div>
