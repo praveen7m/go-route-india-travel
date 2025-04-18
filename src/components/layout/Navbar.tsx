@@ -16,7 +16,7 @@ const Navbar = () => {
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
-          <span className="font-bold text-xl text-accent">Go<span className="text-goroute-orange">Route</span></span>
+          <img src="/logo.png" alt="GoRoute" className="h-8" />
         </Link>
 
         <div className="hidden md:flex items-center gap-4">
