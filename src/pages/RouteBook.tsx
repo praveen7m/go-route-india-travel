@@ -1,51 +1,37 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { toast } from "sonner";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { MapPin, Search, ArrowRight, Users, Clock, RefreshCw, Bus, Star, Route, Calendar, User } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
-import BusSeatSelector from "@/components/bus/BusSeatSelector";
-import BusTrackingView from "@/components/bus/BusTrackingView";
+import { Card, CardContent } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { toast } from "@/components/ui/sonner";
+import { Separator } from "@/components/ui/separator";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { 
+  Calendar, Clock, Map, MapPin, Bus, ChevronRight, User, Users, 
+  Bell, BellOff, Star, Wifi, Coffee, Phone, MessageSquare, AlertTriangle
+} from "lucide-react";
+import WaitlistModal from "@/components/bus/WaitlistModal";
+import WakeMeUpModal from "@/components/bus/WakeMeUpModal";
 
 const RouteBook = () => {
+  const navigate = useNavigate();
   const { t } = useLanguage();
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
-  const [searchResults, setSearchResults] = useState<boolean>(false);
+  
   const [isLoading, setIsLoading] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(new Date().toLocaleDateString("en-US", { year: 'numeric', month: 'short', day: 'numeric' }));
-  const [genderPreference, setGenderPreference] = useState<string>("");
-  const [showSearchForm, setShowSearchForm] = useState(true);
-  const [showGenderForm, setShowGenderForm] = useState(false);
-  
-  // State for seat selector
-  const [seatSelectorOpen, setSeatSelectorOpen] = useState(false);
-  const [selectedBus, setSelectedBus] = useState<any>(null);
-  
-  // State for bus tracking view
-  const [trackingViewOpen, setTrackingViewOpen] = useState(false);
-  const [selectedBusForTracking, setSelectedBusForTracking] = useState<any>(null);
-  
-  // Waitlist state
+  const [fromCity, setFromCity] = useState("");
+  const [toCity, setToCity] = useState("");
+  const [travelDate, setTravelDate] = useState("");
+  const [step, setStep] = useState(1);
+  const [genderPreference, setGenderPreference] = useState<string | null>(null);
+  const [selectedBus, setSelectedBus] = useState<any | null>(null);
   const [isWaitlisted, setIsWaitlisted] = useState(false);
-
-  const handleSearch = () => {
-    if (!from || !to) return;
-    
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setShowSearchForm(false);
-      setShowGenderForm(true);
-      setIsLoading(false);
-    }, 1000);
-  };
+  const [showWaitlistModal, setShowWaitlistModal] = useState(false);
+  const [showWakeMeUpModal, setShowWakeMeUpModal] = useState(false);
+  const [wakeMeUpBus, setWakeMeUpBus] = useState<any | null>(null);
   
   const handleGenderSubmit = () => {
     if (!genderPreference) {
@@ -55,10 +41,9 @@ const RouteBook = () => {
     
     setIsLoading(true);
     
-    // Simulate API call
+    // Simulate loading
     setTimeout(() => {
-      setShowGenderForm(false);
-      setSearchResults(true);
+      setStep(3);
       setIsLoading(false);
       
       // Show a confirmation toast
@@ -70,436 +55,414 @@ const RouteBook = () => {
     }, 1000);
   };
   
-  const handleBackToSearch = () => {
-    setShowSearchForm(true);
-    setShowGenderForm(false);
-    setSearchResults(false);
+  const handleSearch = () => {
+    if (!fromCity || !toCity || !travelDate) return;
+    setStep(2);
   };
-
+  
   const handleBookNow = (bus: any) => {
     // Check if bus is full
     if (bus.available === 0) {
       toast("Bus is full. Would you like to join the waitlist?");
-      setIsWaitlisted(true);
+      setSelectedBus(bus);
+      setShowWaitlistModal(true);
       return;
     }
     
-    setSelectedBus({
-      ...bus,
-      date: selectedDate
-    });
-    setSeatSelectorOpen(true);
+    // Otherwise, proceed with booking
+    setSelectedBus(bus);
+    toast("Proceeding to seat selection");
+    navigate(`/bus-seat-selection?bus=${bus.number}&from=${fromCity}&to=${toCity}`);
   };
   
   const handleJoinWaitlist = (bus: any) => {
-    toast("We'll notify you if a seat becomes available.");
-    setIsWaitlisted(true);
+    setSelectedBus(bus);
+    setShowWaitlistModal(true);
+  };
+
+  const handleWakeMeUp = (bus: any) => {
+    setWakeMeUpBus(bus);
+    setShowWakeMeUpModal(true);
   };
   
-  const handleViewRoute = (bus: any) => {
-    setSelectedBusForTracking(bus);
-    setTrackingViewOpen(true);
-  };
-  
-  // Enhanced bus data with color and waitlist info
+  // Mock bus data
   const buses = [
     {
       id: 1,
-      name: "KSRTC Airavat",
-      type: "AC Sleeper",
-      from: "Bangalore",
+      number: "VLV123",
+      type: "Volvo A/C Sleeper",
+      from: "Bengaluru",
       to: "Chennai",
-      departureTime: "08:30 AM",
-      arrivalTime: "02:30 PM",
-      duration: "6h",
-      price: 750,
-      available: 12,
-      total: 40,
-      isWomensSpecial: false,
-      crowdLevel: "low",
-      busNumber: "KA-01-F-7771",
-      color: "bg-blue-50 border-blue-200 dark:bg-blue-900/20 dark:border-blue-800",
-      accentColor: "text-blue-600 dark:text-blue-400",
-      stops: [
-        { name: "Bangalore", arrivalTime: "08:30 AM", departureTime: "08:30 AM", distance: "0 km", isPassed: true, isNext: false },
-        { name: "Electronic City", arrivalTime: "09:00 AM", departureTime: "09:05 AM", distance: "27 km", isPassed: true, isNext: false },
-        { name: "Hosur", arrivalTime: "09:45 AM", departureTime: "09:50 AM", distance: "60 km", isPassed: true, isNext: false },
-        { name: "Krishnagiri", arrivalTime: "10:30 AM", departureTime: "10:40 AM", distance: "95 km", isPassed: false, isNext: true, platform: "2" },
-        { name: "Vellore", arrivalTime: "12:00 PM", departureTime: "12:10 PM", distance: "190 km", isPassed: false, isNext: false, status: "delayed" },
-        { name: "Kanchipuram", arrivalTime: "01:30 PM", departureTime: "01:35 PM", distance: "270 km", isPassed: false, isNext: false },
-        { name: "Chennai", arrivalTime: "02:30 PM", departureTime: "02:30 PM", distance: "350 km", isPassed: false, isNext: false },
-      ]
+      departure: "21:00",
+      arrival: "05:30",
+      duration: "8h 30m",
+      price: 1200,
+      available: 23,
+      totalSeats: 40,
+      amenities: ["wifi", "usb", "water", "blanket"],
+      rating: 4.5,
+      womensOnly: false
     },
     {
       id: 2,
-      name: "Tamil Nadu Express",
-      type: "AC Seater",
-      from: "Bangalore",
+      number: "MRC456",
+      type: "Mercedes Non-A/C Seater",
+      from: "Bengaluru",
       to: "Chennai",
-      departureTime: "09:45 AM",
-      arrivalTime: "03:15 PM",
-      duration: "5h 30m",
-      price: 650,
-      available: 5,
-      total: 38,
-      isWomensSpecial: true,
-      crowdLevel: "medium",
-      color: "bg-purple-50 border-purple-200 dark:bg-purple-900/20 dark:border-purple-800",
-      accentColor: "text-purple-600 dark:text-purple-400",
+      departure: "22:15",
+      arrival: "07:00",
+      duration: "8h 45m",
+      price: 850,
+      available: 0,
+      totalSeats: 35,
+      amenities: ["water"],
+      rating: 4.1,
+      womensOnly: false
     },
     {
       id: 3,
-      name: "VRL Travels",
-      type: "Non-AC Sleeper",
-      from: "Bangalore",
+      number: "TTA789",
+      type: "TATA A/C Sleeper",
+      from: "Bengaluru",
       to: "Chennai",
-      departureTime: "10:30 PM",
-      arrivalTime: "04:30 AM",
-      duration: "6h",
-      price: 550,
-      available: 0,
-      total: 36,
-      isWomensSpecial: false,
-      crowdLevel: "high",
-      color: "bg-green-50 border-green-200 dark:bg-green-900/20 dark:border-green-800",
-      accentColor: "text-green-600 dark:text-green-400",
-      waitlist: 3,
+      departure: "23:00",
+      arrival: "06:30",
+      duration: "7h 30m",
+      price: 999,
+      available: 5,
+      totalSeats: 30,
+      amenities: ["wifi", "usb", "water", "blanket", "coffee"],
+      rating: 4.7,
+      womensOnly: true
     },
   ];
-
-  const getCrowdBadge = (level: string) => {
-    switch (level) {
-      case "low":
-        return <Badge variant="outline" className="go-badge-green">Low Crowd</Badge>;
-      case "medium":
-        return <Badge variant="outline" className="go-badge-orange">Medium Crowd</Badge>;
-      case "high":
-        return <Badge variant="outline" className="go-badge-red">High Crowd</Badge>;
-      default:
-        return null;
-    }
-  };
-
+  
   return (
-    <div className="go-container space-y-6">
+    <div className="go-container space-y-6 pb-10">
       <div>
         <h1 className="text-2xl font-bold mb-2">{t("routeBus.title")}</h1>
-        <p className="text-muted-foreground">Book long-distance route buses</p>
+        <p className="text-muted-foreground">
+          Book tickets for interstate and long-distance travel
+        </p>
       </div>
-
-      <Tabs defaultValue="search">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="search">
-            <Search className="mr-2 h-4 w-4" />
-            Search Buses
-          </TabsTrigger>
-          <TabsTrigger value="track">
-            <Route className="mr-2 h-4 w-4" />
-            Track Bus
-          </TabsTrigger>
-        </TabsList>
-        
-        <TabsContent value="search" className="space-y-4 mt-4">
-          {showSearchForm && (
-            <Card>
-              <CardContent className="p-6">
-                <div className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="from">{t("routeBus.from")}</Label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="from"
-                        placeholder="Enter starting location"
-                        className="pl-9"
-                        value={from}
-                        onChange={(e) => setFrom(e.target.value)}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex justify-center">
-                    <div className="h-6 w-6 rounded-full flex items-center justify-center border">
-                      <ArrowRight className="h-3 w-3" />
-                    </div>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="to">{t("routeBus.to")}</Label>
-                    <div className="relative">
-                      <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="to"
-                        placeholder="Enter destination"
-                        className="pl-9"
-                        value={to}
-                        onChange={(e) => setTo(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="date">Travel Date</Label>
-                    <div className="relative">
-                      <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                      <Input
-                        id="date"
-                        placeholder="Select date"
-                        className="pl-9"
-                        value={selectedDate}
-                        readOnly
-                      />
-                    </div>
-                  </div>
-
-                  <Button 
-                    className="w-full" 
-                    onClick={handleSearch}
-                    disabled={!from || !to || isLoading}
-                  >
-                    {isLoading ? (
-                      <>
-                        <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                        Searching...
-                      </>
-                    ) : (
-                      <>
-                        <Search className="mr-2 h-4 w-4" />
-                        {t("routeBus.findBuses")}
-                      </>
-                    )}
-                  </Button>
+      
+      {step === 1 && (
+        <Card>
+          <CardContent className="p-6">
+            <div className="space-y-6">
+              <div className="space-y-2">
+                <Label htmlFor="from">{t("routeBus.from")}</Label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="from"
+                    placeholder="From city"
+                    className="pl-9"
+                    value={fromCity}
+                    onChange={(e) => setFromCity(e.target.value)}
+                  />
                 </div>
-              </CardContent>
-            </Card>
-          )}
-          
-          {showGenderForm && (
-            <Card>
-              <CardContent className="p-6">
-                <div className="space-y-6">
-                  <div>
-                    <h3 className="text-lg font-medium">Gender Preference</h3>
-                    <p className="text-sm text-muted-foreground mt-1">
-                      For your safety and comfort, please select a preference.
-                    </p>
-                  </div>
-                  
-                  <RadioGroup 
-                    value={genderPreference}
-                    onValueChange={setGenderPreference}
-                    className="space-y-4"
-                  >
-                    <div className="flex items-center space-x-2 rounded-md border p-3 cursor-pointer hover:bg-accent/10">
-                      <RadioGroupItem value="womens_only" id="womens_only" />
-                      <Label htmlFor="womens_only" className="flex items-center cursor-pointer">
-                        <User className="h-4 w-4 mr-2 text-pink-500" />
-                        Women's Special Buses (Recommended for women travellers)
-                      </Label>
-                    </div>
-                    <div className="flex items-center space-x-2 rounded-md border p-3 cursor-pointer hover:bg-accent/10">
-                      <RadioGroupItem value="all_buses" id="all_buses" />
-                      <Label htmlFor="all_buses" className="cursor-pointer">Show all available buses</Label>
-                    </div>
-                  </RadioGroup>
-                  
-                  <div className="flex gap-2">
-                    <Button 
-                      variant="outline"
-                      onClick={handleBackToSearch}
-                      className="flex-1"
-                    >
-                      Back
-                    </Button>
-                    <Button 
-                      className="flex-1" 
-                      onClick={handleGenderSubmit}
-                      disabled={isLoading}
-                    >
-                      {isLoading ? (
-                        <>
-                          <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                          Loading...
-                        </>
-                      ) : (
-                        <>Continue</>
-                      )}
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {searchResults && (
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-semibold">Available Buses</h2>
-                <Button variant="outline" size="sm" onClick={handleBackToSearch}>
-                  Change Search
-                </Button>
               </div>
-
+              
+              <div className="space-y-2">
+                <Label htmlFor="to">{t("routeBus.to")}</Label>
+                <div className="relative">
+                  <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="to"
+                    placeholder="To city"
+                    className="pl-9"
+                    value={toCity}
+                    onChange={(e) => setToCity(e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="date">{t("routeBus.date")}</Label>
+                <div className="relative">
+                  <Calendar className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    id="date"
+                    type="date"
+                    placeholder="Travel date"
+                    className="pl-9"
+                    value={travelDate}
+                    onChange={(e) => setTravelDate(e.target.value)}
+                  />
+                </div>
+              </div>
+              
+              <Button 
+                className="w-full" 
+                onClick={handleSearch}
+                disabled={!fromCity || !toCity || !travelDate}
+              >
+                <Map className="mr-2 h-4 w-4" />
+                {t("routeBus.search")}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
+      {step === 2 && (
+        <Card>
+          <CardContent className="p-6">
+            <h2 className="text-lg font-semibold mb-4">Seating Preference</h2>
+            
+            <div className="space-y-4">
+              <div className="bg-yellow-50 dark:bg-yellow-950/20 text-yellow-800 dark:text-yellow-200 p-4 rounded-md flex items-start space-x-3">
+                <AlertTriangle className="h-5 w-5 flex-shrink-0" />
+                <div>
+                  <p className="font-medium mb-1">Women's Safety Feature</p>
+                  <p className="text-sm">
+                    We offer women's only sections and buses for enhanced safety. 
+                    Select your preference below.
+                  </p>
+                </div>
+              </div>
+              
+              <RadioGroup 
+                value={genderPreference || ""} 
+                onValueChange={setGenderPreference}
+                className="gap-4"
+              >
+                <div className="flex items-center space-x-2 border p-4 rounded-md cursor-pointer hover:bg-accent/5">
+                  <RadioGroupItem value="womens_only" id="womens_only" />
+                  <Label htmlFor="womens_only" className="flex-1 cursor-pointer">
+                    <div className="font-medium">Women's Only Section/Bus</div>
+                    <div className="text-sm text-muted-foreground">
+                      Exclusively for women travelers for enhanced safety
+                    </div>
+                  </Label>
+                </div>
+                
+                <div className="flex items-center space-x-2 border p-4 rounded-md cursor-pointer hover:bg-accent/5">
+                  <RadioGroupItem value="general" id="general" />
+                  <Label htmlFor="general" className="flex-1 cursor-pointer">
+                    <div className="font-medium">General Seating</div>
+                    <div className="text-sm text-muted-foreground">
+                      Standard seating arrangement for all travelers
+                    </div>
+                  </Label>
+                </div>
+              </RadioGroup>
+            </div>
+            
+            <div className="flex justify-between mt-6">
+              <Button variant="outline" onClick={() => setStep(1)}>
+                Back
+              </Button>
+              <Button onClick={handleGenderSubmit} disabled={isLoading}>
+                {isLoading ? (
+                  <>Processing...</>
+                ) : (
+                  <>
+                    Continue <ChevronRight className="ml-2 h-4 w-4" />
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+      
+      {step === 3 && (
+        <div className="space-y-4">
+          <div className="bg-card p-4 rounded-lg flex items-center justify-between">
+            <div>
+              <div className="flex items-center mb-1">
+                <MapPin className="h-4 w-4 mr-1 text-accent" />
+                <span>{fromCity}</span>
+                <ChevronRight className="h-4 w-4 mx-1" />
+                <MapPin className="h-4 w-4 mr-1 text-accent" />
+                <span>{toCity}</span>
+              </div>
+              <div className="text-sm text-muted-foreground flex items-center">
+                <Calendar className="h-3 w-3 mr-1" />
+                <span>{travelDate}</span>
+              </div>
+            </div>
+            <Button variant="outline" size="sm" onClick={() => setStep(1)}>
+              Modify
+            </Button>
+          </div>
+          
+          <Tabs defaultValue="all">
+            <TabsList className="w-full grid grid-cols-3">
+              <TabsTrigger value="all">All Buses</TabsTrigger>
+              <TabsTrigger value="ac">AC Buses</TabsTrigger>
+              <TabsTrigger value="sleeper">Sleepers</TabsTrigger>
+            </TabsList>
+            
+            <TabsContent value="all" className="space-y-4 mt-4">
               {buses
-                .filter(bus => genderPreference !== "womens_only" || bus.isWomensSpecial || !bus.isWomensSpecial)
+                .filter(bus => genderPreference !== "womens_only" || bus.womensOnly || !bus.womensOnly)
                 .map((bus) => (
-                <Card key={bus.id} className={`go-card-hover overflow-hidden border ${bus.color}`}>
-                  <CardContent className="p-0">
-                    <div className="p-4">
-                      <div className="flex justify-between items-start mb-3">
-                        <div>
-                          <h3 className={`font-semibold flex items-center ${bus.accentColor}`}>
-                            {bus.name}
-                            {bus.isWomensSpecial && (
-                              <Badge variant="secondary" className="ml-2 bg-pink-100 text-pink-800 dark:bg-pink-900 dark:text-pink-100">
-                                Women's Special
-                              </Badge>
-                            )}
-                          </h3>
-                          <p className="text-sm text-muted-foreground">{bus.type}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="font-semibold">₹{bus.price}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {bus.available > 0 ? `${bus.available} seats left` : "Full"}
-                            {bus.waitlist > 0 && ` (${bus.waitlist} in waitlist)`}
-                          </p>
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-3 gap-2 mb-4">
-                        <div>
-                          <p className="text-xs text-muted-foreground">Departs</p>
-                          <p className="font-medium">{bus.departureTime}</p>
-                        </div>
-                        <div className="text-center">
-                          <p className="text-xs text-muted-foreground">Duration</p>
-                          <p className="font-medium">{bus.duration}</p>
-                        </div>
-                        <div className="text-right">
-                          <p className="text-xs text-muted-foreground">Arrives</p>
-                          <p className="font-medium">{bus.arrivalTime}</p>
-                        </div>
-                      </div>
-
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <div className="flex items-center">
-                            <Users className="h-4 w-4 text-muted-foreground mr-1" />
-                            <div className="h-2 bg-muted rounded-full w-16 overflow-hidden">
-                              <div 
-                                className={`h-full rounded-full ${
-                                  bus.crowdLevel === "low" 
-                                    ? "bg-goroute-green" 
-                                    : bus.crowdLevel === "medium" 
-                                    ? "bg-goroute-orange" 
-                                    : "bg-goroute-red"
-                                }`}
-                                style={{ width: `${((bus.total - bus.available) / bus.total) * 100}%` }}
-                              />
+                  <Card key={bus.id} className="go-card-hover overflow-hidden">
+                    <CardContent className="p-0">
+                      <div className="p-4">
+                        <div className="flex justify-between items-start">
+                          <div>
+                            <h3 className="font-semibold">{bus.type}</h3>
+                            <div className="text-sm text-muted-foreground">
+                              Bus number: {bus.number}
                             </div>
                           </div>
-                          {getCrowdBadge(bus.crowdLevel)}
+                          <div className="text-right">
+                            <div className="text-lg font-bold">₹{bus.price}</div>
+                            <div className="text-sm text-muted-foreground">
+                              per person
+                            </div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex justify-between mt-4">
+                          <div>
+                            <div className="text-lg font-semibold">{bus.departure}</div>
+                            <div className="text-sm text-muted-foreground">{bus.from}</div>
+                          </div>
+                          <div className="flex flex-col items-center">
+                            <div className="text-sm text-muted-foreground">{bus.duration}</div>
+                            <div className="h-[2px] w-16 bg-muted my-1"></div>
+                            <div className="text-xs text-muted-foreground">Direct</div>
+                          </div>
+                          <div className="text-right">
+                            <div className="text-lg font-semibold">{bus.arrival}</div>
+                            <div className="text-sm text-muted-foreground">{bus.to}</div>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center mt-4 gap-2">
+                          {bus.amenities.includes("wifi") && (
+                            <Wifi className="h-4 w-4 text-accent" title="Wi-Fi" />
+                          )}
+                          {bus.amenities.includes("usb") && (
+                            <div className="text-xs bg-accent/10 text-accent px-2 py-1 rounded">USB</div>
+                          )}
+                          {bus.amenities.includes("coffee") && (
+                            <Coffee className="h-4 w-4 text-accent" title="Refreshments" />
+                          )}
+                          {bus.womensOnly && (
+                            <Badge variant="outline" className="bg-pink-50 text-pink-600 border-pink-200">
+                              Women's Special
+                            </Badge>
+                          )}
                         </div>
                       </div>
-                    </div>
-
-                    <div className="border-t border-border grid grid-cols-2 divide-x divide-border">
-                      <Button 
-                        variant="ghost" 
-                        className="rounded-none h-12"
-                        onClick={() => handleViewRoute(bus)}
-                      >
-                        <Route className="mr-2 h-4 w-4" />
-                        View Route
-                      </Button>
-                      {bus.available > 0 ? (
-                        <Button 
-                          variant="ghost" 
-                          className={`rounded-none h-12 ${bus.accentColor}`}
-                          onClick={() => handleBookNow(bus)}
-                        >
-                          <Bus className="mr-2 h-4 w-4" />
-                          Book Now
-                        </Button>
-                      ) : (
-                        <Button 
-                          variant="ghost" 
-                          className="rounded-none h-12 text-amber-600"
-                          onClick={() => handleJoinWaitlist(bus)}
-                        >
-                          <Clock className="mr-2 h-4 w-4" />
-                          Join Waitlist
-                        </Button>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          )}
-        </TabsContent>
-        
-        <TabsContent value="track" className="space-y-4 mt-4">
+                      
+                      <Separator />
+                      
+                      <div className="p-4 flex items-center justify-between">
+                        <div className="flex items-center gap-4">
+                          <div className="flex items-center">
+                            <Users className="h-4 w-4 text-muted-foreground mr-1" />
+                            <span className="text-sm">
+                              {bus.available}/{bus.totalSeats} seats
+                            </span>
+                          </div>
+                          <div className="flex items-center">
+                            <Star className="h-4 w-4 text-yellow-500 mr-1" />
+                            <span className="text-sm">{bus.rating}</span>
+                          </div>
+                        </div>
+                        
+                        <div className="flex gap-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handleWakeMeUp(bus)}
+                            title="Set reminder for this bus"
+                          >
+                            <Bell className="h-4 w-4 mr-1" />
+                            Wake Me Up
+                          </Button>
+                          
+                          {bus.available > 0 ? (
+                            <Button size="sm" onClick={() => handleBookNow(bus)}>
+                              Book Now
+                            </Button>
+                          ) : (
+                            <Button 
+                              variant="secondary" 
+                              size="sm"
+                              onClick={() => handleJoinWaitlist(bus)}
+                              className={isWaitlisted ? "bg-green-100 text-green-700" : ""}
+                            >
+                              {isWaitlisted ? "On Waitlist" : "Join Waitlist"}
+                            </Button>
+                          )}
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+            </TabsContent>
+            
+            <TabsContent value="ac" className="mt-4">
+              <div className="p-8 text-center">
+                <Bus className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium">Filter applied: AC Buses</h3>
+                <p className="text-muted-foreground mt-2">
+                  Additional bus options will appear here when available
+                </p>
+              </div>
+            </TabsContent>
+            
+            <TabsContent value="sleeper" className="mt-4">
+              <div className="p-8 text-center">
+                <Bus className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-medium">Filter applied: Sleeper Buses</h3>
+                <p className="text-muted-foreground mt-2">
+                  Additional bus options will appear here when available
+                </p>
+              </div>
+            </TabsContent>
+          </Tabs>
+          
           <Card>
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="busNumber">Bus Number</Label>
-                  <div className="relative">
-                    <Bus className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                    <Input
-                      id="busNumber"
-                      placeholder="Enter bus number (e.g., KA-01-F-7771)"
-                      className="pl-9"
-                    />
-                  </div>
-                </div>
-
-                <Button className="w-full">
-                  <Search className="mr-2 h-4 w-4" />
-                  Track Bus
+            <CardContent className="p-4">
+              <h3 className="font-semibold mb-2">Need Help?</h3>
+              <div className="text-sm text-muted-foreground mb-4">
+                Contact our customer support for assistance with bookings
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" size="sm" className="flex-1">
+                  <Phone className="h-4 w-4 mr-2" />
+                  Call Support
                 </Button>
-                
-                <div className="text-center text-sm text-muted-foreground pt-2">
-                  <p>Or scan QR code on the bus ticket to track your bus</p>
-                </div>
+                <Button variant="outline" size="sm" className="flex-1">
+                  <MessageSquare className="h-4 w-4 mr-2" />
+                  Chat
+                </Button>
               </div>
             </CardContent>
           </Card>
-          
-          <div className="text-center p-6">
-            <p className="text-muted-foreground mb-2">Demo: Click "View Route" on any bus to see the tracking interface</p>
-          </div>
-        </TabsContent>
-      </Tabs>
-
-      {/* Seat Selector Dialog */}
-      {selectedBus && (
-        <BusSeatSelector 
-          open={seatSelectorOpen} 
-          onOpenChange={setSeatSelectorOpen}
-          busInfo={{
-            name: selectedBus.name,
+        </div>
+      )}
+      
+      {showWaitlistModal && selectedBus && (
+        <WaitlistModal
+          open={showWaitlistModal}
+          onClose={() => setShowWaitlistModal(false)}
+          busDetails={{
+            number: selectedBus.number,
             from: selectedBus.from,
-            to: selectedBus.to,
-            departureTime: selectedBus.departureTime,
-            arrivalTime: selectedBus.arrivalTime,
-            duration: selectedBus.duration,
-            date: selectedDate
+            to: selectedBus.to
           }}
         />
       )}
       
-      {/* Bus Tracking View */}
-      {trackingViewOpen && selectedBusForTracking && (
-        <BusTrackingView
-          busName={selectedBusForTracking.name}
-          busNumber={selectedBusForTracking.busNumber || "KA-01-F-7771"}
-          fromTo={`${selectedBusForTracking.from} to ${selectedBusForTracking.to}`}
-          currentDate={`Day 1 - ${new Date().toLocaleDateString("en-US", { month: 'short', day: 'numeric', weekday: 'short' })}`}
-          stops={selectedBusForTracking.stops || []}
-          onClose={() => setTrackingViewOpen(false)}
+      {showWakeMeUpModal && wakeMeUpBus && (
+        <WakeMeUpModal
+          open={showWakeMeUpModal}
+          onClose={() => setShowWakeMeUpModal(false)}
+          busDetails={{
+            number: wakeMeUpBus.number,
+            destination: wakeMeUpBus.to,
+            arrivalTime: wakeMeUpBus.arrival
+          }}
         />
       )}
     </div>

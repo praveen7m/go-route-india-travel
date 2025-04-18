@@ -17,6 +17,7 @@ import SOS from "@/pages/SOS";
 import IndoorNavigation from "@/pages/IndoorNavigation";
 import MultiModalJourney from "@/pages/MultiModalJourney";
 import NotFound from "@/pages/NotFound";
+import SavedRoutes from "@/pages/SavedRoutes";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ const App = () => (
                 <Route path="multi-modal" element={<MultiModalJourney />} />
                 <Route path="chatbot" element={<Chatbot />} />
                 <Route path="sos" element={<SOS />} />
+                <Route path="saved-routes" element={<SavedRoutes />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
