@@ -1,4 +1,3 @@
-
 import * as React from "react"
 
 const TOAST_LIMIT = 20
@@ -11,6 +10,8 @@ type ToasterToast = {
   action?: React.ReactNode
   variant?: "default" | "destructive"
   duration?: number
+  onOpenChange?: (open: boolean) => void
+  open?: boolean
 }
 
 const actionTypes = {
@@ -163,4 +164,3 @@ function useToast() {
 
 export { useToast, toast }
 export type { ToasterToast }
-
