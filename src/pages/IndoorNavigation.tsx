@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbSeparator, BreadcrumbPage } from "@/components/ui/breadcrumb";
 import { Card, CardContent } from "@/components/ui/card";
@@ -8,9 +7,10 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
+import NavigationMap from "@/components/indoor-navigation/NavigationMap";
 import { 
   QrCode, 
-  Navigation, 
+  Navigation,
   ArrowRight, 
   Building2, 
   Compass, 
@@ -43,7 +43,6 @@ const IndoorNavigation = () => {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [hasSearched, setHasSearched] = useState(false);
   
-  // New state for indoor navigation workflow
   const [currentStep, setCurrentStep] = useState(0);
   const [detectedLocation, setDetectedLocation] = useState("");
   const [showQrScanner, setShowQrScanner] = useState(false);
@@ -55,7 +54,6 @@ const IndoorNavigation = () => {
   const [currentCheckpoint, setCurrentCheckpoint] = useState("");
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
   
-  // Terminal locations (same as before)
   const indoorLocations = [
     {
       id: 1,
@@ -122,10 +120,8 @@ const IndoorNavigation = () => {
     }
   ];
 
-  // Simulate auto-detecting location on component mount
   useEffect(() => {
     const detectLocation = () => {
-      // Simulate location detection with a random location
       const randomLocation = indoorLocations[Math.floor(Math.random() * indoorLocations.length)];
       const gates = ["A", "B", "C", "D", "E"];
       const randomGate = gates[Math.floor(Math.random() * gates.length)];
@@ -136,7 +132,6 @@ const IndoorNavigation = () => {
         description: `You are at: ${randomLocation.name} – Gate ${randomGate}`
       });
 
-      // Simulate having a bus booking
       const destinations = ["Chennai", "Bangalore", "Coimbatore", "Madurai"];
       const randomDestination = destinations[Math.floor(Math.random() * destinations.length)];
       const randomBayNumber = Math.floor(Math.random() * 20) + 1;
@@ -152,7 +147,6 @@ const IndoorNavigation = () => {
       });
     };
     
-    // Simulate delay in detection
     setTimeout(detectLocation, 1000);
   }, []);
 
@@ -176,12 +170,10 @@ const IndoorNavigation = () => {
     setIsScanning(true);
     setShowQrScanner(true);
     
-    // Simulate scanning process
     setTimeout(() => {
       setIsScanning(false);
       setShowQrScanner(false);
       
-      // Start the navigation workflow
       setCurrentStep(1);
       
       toast.success("QR code scanned successfully", {
@@ -198,7 +190,6 @@ const IndoorNavigation = () => {
     setIsScanning(true);
     setShowQrScanner(true);
     
-    // Simulate scanning process
     setTimeout(() => {
       setIsScanning(false);
       setShowQrScanner(false);
@@ -214,7 +205,6 @@ const IndoorNavigation = () => {
     setCurrentStep(4);
     setCalculatingPath(true);
     
-    // Simulate path calculation
     setTimeout(() => {
       setCalculatingPath(false);
       setCurrentStep(5);
@@ -231,13 +221,11 @@ const IndoorNavigation = () => {
     setIsScanning(true);
     setShowQrScanner(true);
     
-    // Simulate scanning process
     setTimeout(() => {
       setIsScanning(false);
       setShowQrScanner(false);
       setNavigationProgress(75);
       
-      // Update checkpoint
       setCurrentCheckpoint("Final Stretch");
       
       toast.success("Checkpoint confirmed", {
@@ -260,7 +248,7 @@ const IndoorNavigation = () => {
 
   const renderStepContent = () => {
     switch (currentStep) {
-      case 0: // Auto Detect Location
+      case 0:
         return (
           <Card className="bg-accent/10 border-accent/20 mb-6">
             <CardContent className="p-6">
@@ -335,7 +323,7 @@ const IndoorNavigation = () => {
           </Card>
         );
         
-      case 1: // Scan Entry QR Code
+      case 1:
         return (
           <Card className="mb-6">
             <CardContent className="p-6">
@@ -375,7 +363,7 @@ const IndoorNavigation = () => {
           </Card>
         );
         
-      case 2: // Destination Auto-Set
+      case 2:
         return (
           <Card className="mb-6">
             <CardContent className="p-6">
@@ -419,7 +407,7 @@ const IndoorNavigation = () => {
           </Card>
         );
         
-      case 3: // Path Calculation
+      case 3:
         return (
           <Card className="mb-6">
             <CardContent className="p-6">
@@ -462,8 +450,8 @@ const IndoorNavigation = () => {
             </CardContent>
           </Card>
         );
-          
-      case 4: // Calculating path
+        
+      case 4:
         return (
           <Card className="mb-6">
             <CardContent className="p-6 text-center">
@@ -487,66 +475,14 @@ const IndoorNavigation = () => {
             </CardContent>
           </Card>
         );
-          
-      case 5: // AR Navigation
+        
+      case 5:
         return (
           <div className="relative">
             <Card className="mb-6">
               <CardContent className="p-0">
-                {/* AR Navigation View */}
-                <div className="relative h-[70vh] bg-black overflow-hidden rounded-t-lg">
-                  <img 
-                    src="public/lovable-uploads/6f09daf1-ca8d-41d1-b418-5459a0b3726c.png" 
-                    alt="AR Navigation"
-                    className="w-full h-full object-cover"
-                  />
-                  
-                  {/* Navigation progress */}
-                  <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-black/70 rounded-full px-4 py-1 text-white text-sm">
-                    <div className="flex items-center gap-2">
-                      <span className="font-medium">Step {navigationProgress < 50 ? "1" : "2"} of 3</span>
-                    </div>
-                  </div>
-                  
-                  {/* Stats overlay */}
-                  <div className="absolute bottom-20 left-4 text-white">
-                    <div className="text-2xl font-bold">22</div>
-                    <div className="text-xs text-white/70">meters away</div>
-                  </div>
-                  
-                  <div className="absolute bottom-20 right-4 text-white">
-                    <div className="text-2xl font-bold">123</div>
-                    <div className="text-xs text-white/70">meters traveled</div>
-                  </div>
-                  
-                  <div className="absolute bottom-28 left-1/2 transform -translate-x-1/2 text-white text-xs">
-                    <div className="text-center">5 of 8</div>
-                    <div className="text-white/70">checkpoints</div>
-                  </div>
-                  
-                  {/* Direction card */}
-                  <div className="absolute bottom-4 left-0 right-0 mx-4">
-                    <Card className="border-0 shadow-lg">
-                      <CardContent className="p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <div className="text-xs uppercase font-semibold text-muted-foreground">WALK TO</div>
-                            <div className="font-medium">{currentCheckpoint}</div>
-                            <div className="text-xs mt-1 bg-red-100 text-red-600 rounded-full inline-block px-2 py-0.5">
-                              <Clock className="h-3 w-3 inline mr-1" />
-                              12 MIN WAIT
-                            </div>
-                          </div>
-                          <div className="bg-red-500 text-white p-2 rounded-md">
-                            <QrCode className="h-6 w-6" />
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  </div>
-                </div>
+                <NavigationMap />
                 
-                {/* Controls */}
                 <div className="p-4 flex flex-col gap-3">
                   <div className="flex justify-between items-center">
                     <span className="text-sm font-medium">Progress</span>
@@ -589,7 +525,6 @@ const IndoorNavigation = () => {
     }
   };
 
-  // Navigation completion dialog
   const NavigationCompleteDialog = () => (
     <Dialog open={showCompletionDialog} onOpenChange={setShowCompletionDialog}>
       <DialogContent className="sm:max-w-md">
@@ -662,7 +597,6 @@ const IndoorNavigation = () => {
     </Dialog>
   );
 
-  // QR Scanner dialog
   const QRScannerDialog = () => (
     <Dialog open={showQrScanner} onOpenChange={setShowQrScanner}>
       <DialogContent className="sm:max-w-md">
@@ -700,7 +634,6 @@ const IndoorNavigation = () => {
           </Button>
           <Button 
             onClick={() => {
-              // Simulate successful QR scan
               setTimeout(() => {
                 setIsScanning(false);
                 setShowQrScanner(false);
@@ -750,7 +683,6 @@ const IndoorNavigation = () => {
         </p>
       </div>
       
-      {/* Navigation Progress Steps */}
       {currentStep > 0 && (
         <div className="flex items-center justify-between px-2 py-3 bg-accent/5 rounded-lg mb-2">
           <div 
@@ -800,7 +732,6 @@ const IndoorNavigation = () => {
         </div>
       )}
       
-      {/* Current Step Content */}
       {renderStepContent()}
       
       {currentStep === 0 && (
@@ -973,7 +904,6 @@ const IndoorNavigation = () => {
         </div>
       </div>
       
-      {/* Dialogs */}
       <QRScannerDialog />
       <NavigationCompleteDialog />
     </div>
