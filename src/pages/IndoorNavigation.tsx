@@ -3,41 +3,30 @@ import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbS
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Progress } from "@/components/ui/progress";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
-import NavigationMap from "@/components/indoor-navigation/NavigationMap";
 import { 
   QrCode, 
   Navigation,
-  ArrowRight, 
   Building2, 
   Compass, 
   Search, 
-  MapPin, 
-  Check, 
+  MapPin,
   Wifi, 
   Users, 
   Clock, 
   Accessibility, 
-  Camera, 
-  Locate, 
-  MapPinOff,
-  Bell,
-  ChevronRight,
-  Bus,
-  ArrowUp,
-  ArrowDown,
-  CircleCheck,
-  AlertCircle,
-  Info
-} from "lucide-react";
-import { useLanguage } from "@/hooks/useLanguage";
+  ArrowRight
+} from 'lucide-react';
 import { toast } from "sonner";
+import type { StopDetails } from '@/types/bus-route';
+
+// Import new components
+import LocationDetection from "@/components/indoor-navigation/LocationDetection";
+import QRScanner from "@/components/indoor-navigation/QRScanner";
+import NavigationComplete from "@/components/indoor-navigation/NavigationComplete";
+import NavigationProgress from "@/components/indoor-navigation/NavigationProgress";
 
 const IndoorNavigation = () => {
-  const { t } = useLanguage();
   const [isScanning, setIsScanning] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -150,6 +139,33 @@ const IndoorNavigation = () => {
     setTimeout(detectLocation, 1000);
   }, []);
 
+  const stops: StopDetails[] = [
+    {
+      name: "Entry Gate A",
+      platform: "Ground Floor",
+      status: "passed",
+      isPassed: true
+    },
+    {
+      name: "Security Checkpoint 3",
+      platform: "Ground Floor",
+      status: "on-time",
+      isPassed: false
+    },
+    {
+      name: "Final Stretch",
+      platform: "Platform 2",
+      status: "pending",
+      isPassed: false
+    },
+    {
+      name: destinationBay,
+      platform: "Platform 2",
+      status: "pending",
+      isPassed: false
+    }
+  ];
+
   const handleSearch = () => {
     setHasSearched(true);
     if (!searchTerm.trim()) {
@@ -246,81 +262,186 @@ const IndoorNavigation = () => {
     setShowARNavigation(false);
   };
 
+  const handleScanComplete = () => {
+    setIsScanning(false);
+    setShowQrScanner(false);
+    if (currentStep === 1) {
+      setCurrentStep(2);
+      toast.success("QR Code scanned successfully");
+    } else if (currentStep === 5) {
+      setNavigationProgress(navigationProgress + 25);
+      toast.success("Checkpoint confirmed");
+      if (navigationProgress >= 75) {
+        handleCompleteNavigation();
+      }
+    }
+  };
+
   const renderStepContent = () => {
     switch (currentStep) {
       case 0:
         return (
-          <Card className="bg-accent/10 border-accent/20 mb-6">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-start mb-4">
-                <div className="flex items-center">
-                  <div className="p-3 bg-accent/20 rounded-full mr-3">
-                    <MapPin className="h-6 w-6 text-accent" />
+          <>
+            <LocationDetection
+              detectedLocation={detectedLocation}
+              busInfo={busInfo}
+              destinationBay={destinationBay}
+              onChangeLocation={handleChangeLocation}
+              onStartNavigation={handleStartNavigation}
+            />
+            
+            <Card className="bg-accent/10 border-accent/20">
+              <CardContent className="p-6">
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-3">
+                    <div className="p-3 bg-accent/20 rounded-full">
+                      <QrCode className="h-6 w-6 text-accent" />
+                    </div>
+                    <div>
+                      <h3 className="font-medium">Scan QR Code</h3>
+                      <p className="text-sm text-muted-foreground">Scan a QR code to start navigation</p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-medium">Current Location</h3>
-                    <p className="text-sm text-muted-foreground">Auto-detected based on device</p>
-                  </div>
+                  <Button 
+                    onClick={handleScanQR} 
+                    disabled={isScanning}
+                    className="relative overflow-hidden"
+                  >
+                    {isScanning ? (
+                      <span className="flex items-center gap-2">
+                        <span className="animate-pulse">Scanning...</span>
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-2">
+                        Scan QR <QrCode className="h-4 w-4" />
+                      </span>
+                    )}
+                  </Button>
                 </div>
-                <Button variant="outline" size="sm" onClick={handleChangeLocation}>
-                  Change
-                </Button>
+              </CardContent>
+            </Card>
+            
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search for bus terminals, railway stations, etc."
+                className="pl-9 pr-16"
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
+              />
+              <Button
+                className="absolute right-0 top-0 h-full rounded-l-none"
+                onClick={handleSearch}
+              >
+                Search
+              </Button>
+            </div>
+            
+            {hasSearched && (
+              <div className="space-y-4">
+                <h2 className="text-xl font-semibold flex items-center gap-2">
+                  <Building2 className="h-5 w-5 text-accent" />
+                  Search Results {searchResults.length > 0 ? `(${searchResults.length})` : ''}
+                </h2>
+                
+                {searchResults.length === 0 ? (
+                  <Card className="p-6 text-center">
+                    <div className="flex flex-col items-center">
+                      <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
+                      <h3 className="text-lg font-medium">No locations found</h3>
+                      <p className="text-muted-foreground mt-2">
+                        Try different search terms or browse supported locations below
+                      </p>
+                    </div>
+                  </Card>
+                ) : (
+                  <div className="grid grid-cols-1 gap-4">
+                    {searchResults.map((location) => (
+                      <Card key={location.id} className="go-card-hover bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-950/20 dark:to-blue-950/20 border-blue-200 dark:border-blue-800">
+                        <CardContent className="p-4">
+                          <div className="flex justify-between items-start">
+                            <div>
+                              <h3 className="font-medium">{location.name}</h3>
+                              <div className="text-sm text-muted-foreground mt-1">
+                                <span>{location.city}</span>
+                                <span className="mx-2">•</span>
+                                <span>{location.type}</span>
+                              </div>
+                              <div className="flex flex-wrap gap-2 mt-2">
+                                <Badge variant="outline" className="text-xs">
+                                  <Building2 className="h-3 w-3 mr-1" /> {location.floors} floors
+                                </Badge>
+                                <Badge variant="outline" className="text-xs">
+                                  <Users className="h-3 w-3 mr-1" /> {location.entrances} entrances
+                                </Badge>
+                                {location.hasAccessibility && (
+                                  <Badge variant="outline" className="text-xs text-green-600 bg-green-50 border-green-200">
+                                    <Accessibility className="h-3 w-3 mr-1" /> Accessible
+                                  </Badge>
+                                )}
+                                <Badge variant="outline" className="text-xs">
+                                  <Wifi className="h-3 w-3 mr-1" /> Free Wi-Fi
+                                </Badge>
+                              </div>
+                            </div>
+                            <Button onClick={() => {
+                              setDetectedLocation(`${location.name} – Gate A`);
+                              setCurrentStep(1);
+                              toast.success(`Location set to ${location.name}`);
+                            }} className="gap-1">
+                              <span>Navigate</span>
+                              <Navigation className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
               </div>
+            )}
+            
+            <div className="space-y-4">
+              <h2 className="text-xl font-semibold flex items-center gap-2">
+                <Building2 className="h-5 w-5 text-accent" />
+                Popular Locations
+              </h2>
               
-              <div className="bg-background/80 border rounded-lg p-4">
-                <div className="flex items-center">
-                  <Locate className="h-4 w-4 text-accent mr-2" />
-                  <span className="font-medium">{detectedLocation}</span>
-                </div>
+              <div className="grid grid-cols-1 gap-4">
+                {indoorLocations.slice(0, 3).map((location) => (
+                  <Card key={location.id} className="go-card-hover">
+                    <CardContent className="p-4">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <h3 className="font-medium">{location.name}</h3>
+                          <div className="text-sm text-muted-foreground mt-1">
+                            <span>{location.floors} floors</span>
+                            <span className="mx-2">•</span>
+                            <span>{location.entrances} entrances</span>
+                            {location.hasAccessibility && (
+                              <>
+                                <span className="mx-2">•</span>
+                                <span className="text-green-600">Wheelchair accessible</span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                        <Button variant="outline" size="sm" onClick={() => {
+                          setDetectedLocation(`${location.name} – Gate A`);
+                          setCurrentStep(1);
+                          toast.success(`Location set to ${location.name}`);
+                        }} className="gap-1">
+                          <span className="text-xs">Navigate</span>
+                          <ArrowRight className="h-3 w-3" />
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
-              
-              {busInfo && (
-                <div className="mt-6 bg-accent/5 border border-accent/10 rounded-lg p-4">
-                  <div className="flex items-center mb-3">
-                    <div className="p-2 bg-green-100 rounded-full mr-2">
-                      <Check className="h-4 w-4 text-green-600" />
-                    </div>
-                    <h3 className="font-medium">Bus Booking Detected</h3>
-                  </div>
-                  
-                  <div className="text-sm mb-3">
-                    Your bus departs from this terminal. Need help getting to your bus bay?
-                  </div>
-                  
-                  <div className="flex flex-col space-y-2">
-                    <div className="flex justify-between items-center pb-2 border-b border-border">
-                      <span className="text-sm text-muted-foreground">Bus Number</span>
-                      <span className="font-medium">{busInfo.number}</span>
-                    </div>
-                    <div className="flex justify-between items-center pb-2 border-b border-border">
-                      <span className="text-sm text-muted-foreground">Destination</span>
-                      <span className="font-medium">{busInfo.destination}</span>
-                    </div>
-                    <div className="flex justify-between items-center pb-2 border-b border-border">
-                      <span className="text-sm text-muted-foreground">Departure Time</span>
-                      <span className="font-medium">{busInfo.time}</span>
-                    </div>
-                    <div className="flex justify-between items-center">
-                      <span className="text-sm text-muted-foreground">Departure Bay</span>
-                      <span className="font-medium">{destinationBay}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="flex gap-2 mt-4">
-                    <Button variant="outline" className="flex-1" onClick={() => toast("Enjoy your journey!")}>
-                      No, I know the way
-                    </Button>
-                    <Button 
-                      className="flex-1 bg-accent hover:bg-accent/90" 
-                      onClick={handleStartNavigation}
-                    >
-                      Yes, guide me
-                    </Button>
-                  </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+            </div>
+          </>
         );
         
       case 1:
@@ -350,13 +471,13 @@ const IndoorNavigation = () => {
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
-                    Scan Entry QR <Camera className="h-4 w-4" />
+                    Scan Entry QR <QrCode className="h-4 w-4" />
                   </span>
                 )}
               </Button>
               
               <div className="mt-4 text-sm text-muted-foreground">
-                <Info className="h-4 w-4 inline-block mr-1" />
+                <QrCode className="h-4 w-4 inline-block mr-1" />
                 The QR code helps confirm your precise location inside the terminal
               </div>
             </CardContent>
@@ -467,7 +588,7 @@ const IndoorNavigation = () => {
                 </div>
               </div>
               
-              <Progress value={45} className="mb-4" />
+              <QrCode value={45} className="mb-4" />
               
               <div className="text-sm text-muted-foreground">
                 This will only take a moment...
@@ -478,185 +599,19 @@ const IndoorNavigation = () => {
         
       case 5:
         return (
-          <div className="relative">
-            <Card className="mb-6">
-              <CardContent className="p-0">
-                <NavigationMap />
-                
-                <div className="p-4 flex flex-col gap-3">
-                  <div className="flex justify-between items-center">
-                    <span className="text-sm font-medium">Progress</span>
-                    <span className="text-sm">{navigationProgress}%</span>
-                  </div>
-                  <Progress value={navigationProgress} className="mb-2" />
-                  
-                  <div className="flex gap-2">
-                    {navigationProgress < 99 ? (
-                      <>
-                        <Button variant="outline" className="flex-1" onClick={handleScanCheckpointQR}>
-                          <QrCode className="h-4 w-4 mr-2" />
-                          Scan Checkpoint
-                        </Button>
-                        <Button 
-                          className="flex-1 bg-accent hover:bg-accent/90" 
-                          onClick={handleCompleteNavigation}
-                        >
-                          Skip to End
-                        </Button>
-                      </>
-                    ) : (
-                      <Button 
-                        className="w-full bg-green-600 hover:bg-green-700" 
-                        onClick={handleCompleteNavigation}
-                      >
-                        <Check className="h-4 w-4 mr-2" />
-                        Complete Navigation
-                      </Button>
-                    )}
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
+          <NavigationProgress
+            currentCheckpoint={currentCheckpoint}
+            navigationProgress={navigationProgress}
+            onScanCheckpoint={() => setShowQrScanner(true)}
+            onComplete={handleCompleteNavigation}
+            stops={stops}
+          />
         );
         
       default:
         return null;
     }
   };
-
-  const NavigationCompleteDialog = () => (
-    <Dialog open={showCompletionDialog} onOpenChange={setShowCompletionDialog}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <CircleCheck className="h-5 w-5 text-green-600" />
-            You've Arrived!
-          </DialogTitle>
-          <DialogDescription>
-            You've successfully reached {destinationBay}
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="p-4 bg-accent/5 rounded-lg mb-4">
-          <div className="flex flex-col space-y-3">
-            <div className="flex justify-between items-center pb-2 border-b border-border">
-              <span className="text-sm text-muted-foreground">Bus Number</span>
-              <span className="font-medium">{busInfo?.number}</span>
-            </div>
-            <div className="flex justify-between items-center pb-2 border-b border-border">
-              <span className="text-sm text-muted-foreground">Destination</span>
-              <span className="font-medium">{busInfo?.destination}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-muted-foreground">Departure</span>
-              <span className="font-medium">{busInfo?.time}</span>
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex flex-col gap-3">
-          <Button 
-            variant="outline" 
-            className="w-full" 
-            onClick={() => {
-              setShowCompletionDialog(false);
-              toast.success("We'll alert you before your bus arrives");
-            }}
-          >
-            <Bell className="h-4 w-4 mr-2" />
-            Wake Me Up Before Bus Arrives
-          </Button>
-          
-          <Button 
-            variant="outline" 
-            className="w-full" 
-            onClick={() => {
-              setShowCompletionDialog(false);
-              setCurrentStep(0);
-              toast("Starting a new navigation session");
-            }}
-          >
-            <Navigation className="h-4 w-4 mr-2" />
-            Start New Navigation
-          </Button>
-          
-          <Button 
-            className="w-full" 
-            onClick={() => {
-              setShowCompletionDialog(false);
-              setCurrentStep(0);
-              toast("Have a safe journey!");
-            }}
-          >
-            <Check className="h-4 w-4 mr-2" />
-            Done
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
-
-  const QRScannerDialog = () => (
-    <Dialog open={showQrScanner} onOpenChange={setShowQrScanner}>
-      <DialogContent className="sm:max-w-md">
-        <DialogHeader>
-          <DialogTitle>Scan QR Code</DialogTitle>
-          <DialogDescription>
-            Position the QR code in the frame to scan
-          </DialogDescription>
-        </DialogHeader>
-        
-        <div className="flex items-center justify-center">
-          <div className="w-64 h-64 border-2 border-dashed border-accent/50 rounded-lg flex items-center justify-center bg-black/5">
-            <div className="text-center">
-              {isScanning ? (
-                <div className="flex flex-col items-center">
-                  <QrCode className="h-12 w-12 text-accent animate-pulse mb-2" />
-                  <div className="text-sm text-muted-foreground">Scanning...</div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center">
-                  <QrCode className="h-12 w-12 text-muted-foreground mb-2" />
-                  <div className="text-sm text-muted-foreground">Camera preview would appear here</div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-        
-        <div className="flex justify-between">
-          <Button
-            variant="outline"
-            onClick={() => setShowQrScanner(false)}
-          >
-            Cancel
-          </Button>
-          <Button 
-            onClick={() => {
-              setTimeout(() => {
-                setIsScanning(false);
-                setShowQrScanner(false);
-                if (currentStep === 1) {
-                  setCurrentStep(2);
-                  toast.success("QR Code scanned successfully");
-                } else if (currentStep === 5) {
-                  setNavigationProgress(navigationProgress + 25);
-                  toast.success("Checkpoint confirmed");
-                  if (navigationProgress >= 75) {
-                    handleCompleteNavigation();
-                  }
-                }
-              }, 1000);
-              setIsScanning(true);
-            }}
-          >
-            {isScanning ? "Scanning..." : "Scan"}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
-  );
 
   return (
     <div className="go-container space-y-6">
@@ -734,161 +689,19 @@ const IndoorNavigation = () => {
       
       {renderStepContent()}
       
-      {currentStep === 0 && (
-        <>
-          <Card className="bg-accent/10 border-accent/20">
-            <CardContent className="p-6">
-              <div className="flex justify-between items-center">
-                <div className="flex items-center gap-3">
-                  <div className="p-3 bg-accent/20 rounded-full">
-                    <QrCode className="h-6 w-6 text-accent" />
-                  </div>
-                  <div>
-                    <h3 className="font-medium">Scan QR Code</h3>
-                    <p className="text-sm text-muted-foreground">Scan a QR code to start navigation</p>
-                  </div>
-                </div>
-                <Button 
-                  onClick={handleScanQR} 
-                  disabled={isScanning}
-                  className="relative overflow-hidden"
-                >
-                  {isScanning ? (
-                    <span className="flex items-center gap-2">
-                      <span className="animate-pulse">Scanning...</span>
-                    </span>
-                  ) : (
-                    <span className="flex items-center gap-2">
-                      Scan QR <QrCode className="h-4 w-4" />
-                    </span>
-                  )}
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search for bus terminals, railway stations, etc."
-              className="pl-9 pr-16"
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            />
-            <Button
-              className="absolute right-0 top-0 h-full rounded-l-none"
-              onClick={handleSearch}
-            >
-              Search
-            </Button>
-          </div>
-          
-          {hasSearched && (
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold flex items-center gap-2">
-                <Building2 className="h-5 w-5 text-accent" />
-                Search Results {searchResults.length > 0 ? `(${searchResults.length})` : ''}
-              </h2>
-              
-              {searchResults.length === 0 ? (
-                <Card className="p-6 text-center">
-                  <div className="flex flex-col items-center">
-                    <MapPin className="h-12 w-12 text-muted-foreground mb-4" />
-                    <h3 className="text-lg font-medium">No locations found</h3>
-                    <p className="text-muted-foreground mt-2">
-                      Try different search terms or browse supported locations below
-                    </p>
-                  </div>
-                </Card>
-              ) : (
-                <div className="grid grid-cols-1 gap-4">
-                  {searchResults.map((location) => (
-                    <Card key={location.id} className="go-card-hover bg-gradient-to-r from-cyan-50 to-blue-50 dark:from-cyan-950/20 dark:to-blue-950/20 border-blue-200 dark:border-blue-800">
-                      <CardContent className="p-4">
-                        <div className="flex justify-between items-start">
-                          <div>
-                            <h3 className="font-medium">{location.name}</h3>
-                            <div className="text-sm text-muted-foreground mt-1">
-                              <span>{location.city}</span>
-                              <span className="mx-2">•</span>
-                              <span>{location.type}</span>
-                            </div>
-                            <div className="flex flex-wrap gap-2 mt-2">
-                              <Badge variant="outline" className="text-xs">
-                                <Building2 className="h-3 w-3 mr-1" /> {location.floors} floors
-                              </Badge>
-                              <Badge variant="outline" className="text-xs">
-                                <Users className="h-3 w-3 mr-1" /> {location.entrances} entrances
-                              </Badge>
-                              {location.hasAccessibility && (
-                                <Badge variant="outline" className="text-xs text-green-600 bg-green-50 border-green-200">
-                                  <Accessibility className="h-3 w-3 mr-1" /> Accessible
-                                </Badge>
-                              )}
-                              <Badge variant="outline" className="text-xs">
-                                <Wifi className="h-3 w-3 mr-1" /> Free Wi-Fi
-                              </Badge>
-                            </div>
-                          </div>
-                          <Button onClick={() => {
-                            setDetectedLocation(`${location.name} – Gate A`);
-                            setCurrentStep(1);
-                            toast.success(`Location set to ${location.name}`);
-                          }} className="gap-1">
-                            <span>Navigate</span>
-                            <Navigation className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-          
-          <div className="space-y-4">
-            <h2 className="text-xl font-semibold flex items-center gap-2">
-              <Building2 className="h-5 w-5 text-accent" />
-              Popular Locations
-            </h2>
-            
-            <div className="grid grid-cols-1 gap-4">
-              {indoorLocations.slice(0, 3).map((location) => (
-                <Card key={location.id} className="go-card-hover">
-                  <CardContent className="p-4">
-                    <div className="flex justify-between items-start">
-                      <div>
-                        <h3 className="font-medium">{location.name}</h3>
-                        <div className="text-sm text-muted-foreground mt-1">
-                          <span>{location.floors} floors</span>
-                          <span className="mx-2">•</span>
-                          <span>{location.entrances} entrances</span>
-                          {location.hasAccessibility && (
-                            <>
-                              <span className="mx-2">•</span>
-                              <span className="text-green-600">Wheelchair accessible</span>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      <Button variant="outline" size="sm" onClick={() => {
-                        setDetectedLocation(`${location.name} – Gate A`);
-                        setCurrentStep(1);
-                        toast.success(`Location set to ${location.name}`);
-                      }} className="gap-1">
-                        <span className="text-xs">Navigate</span>
-                        <ArrowRight className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          </div>
-        </>
-      )}
+      <QRScanner
+        isOpen={showQrScanner}
+        isScanning={isScanning}
+        onOpenChange={setShowQrScanner}
+        onScanComplete={handleScanComplete}
+      />
+      
+      <NavigationComplete
+        isOpen={showCompletionDialog}
+        onOpenChange={setShowCompletionDialog}
+        busInfo={busInfo}
+        onReset={() => setCurrentStep(0)}
+      />
       
       <div className="py-4 px-6 bg-secondary rounded-lg">
         <div className="flex items-start gap-4">
@@ -903,9 +716,6 @@ const IndoorNavigation = () => {
           </div>
         </div>
       </div>
-      
-      <QRScannerDialog />
-      <NavigationCompleteDialog />
     </div>
   );
 };
