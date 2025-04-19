@@ -145,7 +145,7 @@ const RouteBook = () => {
   ];
 
   // Mock bus stop data for tracking view
-  const busStops = [
+  const busStops: StopDetails[] = [
     {
       name: "Bengaluru Central",
       arrivalTime: "21:00",
@@ -186,7 +186,7 @@ const RouteBook = () => {
       distance: "180 km",
       isPassed: false,
       isNext: false,
-      status: "delayed"
+      status: "delayed" as const
     },
     {
       name: "Sriperumbudur",
