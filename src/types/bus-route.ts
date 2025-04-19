@@ -16,6 +16,17 @@ export interface BusData {
   womensOnly: boolean;
 }
 
+export interface StopDetails {
+  name: string;
+  arrivalTime: string;
+  departureTime: string;
+  distance: string;
+  isPassed: boolean;
+  isNext: boolean;
+  platform?: string;
+  status?: "delayed" | "on-time" | "cancelled";
+}
+
 export const busStops: StopDetails[] = [
   {
     name: "Bengaluru Central",

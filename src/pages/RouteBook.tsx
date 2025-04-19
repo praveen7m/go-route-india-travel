@@ -6,6 +6,7 @@ import { GenderPreferenceStep } from "@/components/route-book/GenderPreferenceSt
 import { BusListStep } from "@/components/route-book/BusListStep";
 import { toast } from "sonner";
 import type { BusData } from "@/types/bus-route";
+import { busStops } from "@/types/bus-route";
 import WaitlistModal from "@/components/bus/WaitlistModal";
 import WakeMeUpModal from "@/components/bus/WakeMeUpModal";
 import BusTrackingView from "@/components/bus/BusTrackingView";
