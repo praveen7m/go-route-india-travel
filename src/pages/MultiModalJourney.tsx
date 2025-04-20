@@ -4,10 +4,11 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Search, RefreshCw } from "lucide-react";
+import { MapPin, Search, RefreshCw, ArrowLeft, Star } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import RouteDetails from "@/components/journey/RouteDetails";
 import { useNavigate } from "react-router-dom";
+import { Badge } from "@/components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 
 const nextDestinationRoutes = [
   {
@@ -39,7 +40,9 @@ const nextDestinationRoutes = [
       }
     ],
     totalFare: 50,
-    totalTime: 24
+    totalTime: 24,
+    isBest: false,
+    isSuggested: true
   },
   {
     id: 2,
@@ -70,7 +73,9 @@ const nextDestinationRoutes = [
       }
     ],
     totalFare: 30,
-    totalTime: 26
+    totalTime: 26,
+    isBest: true,
+    isSuggested: false
   }
 ];
 
@@ -99,13 +104,11 @@ const MultiModalJourney = () => {
     setTimeout(() => {
       setSearchResults(true);
       setIsLoading(false);
-      // Auto-select the first route
-      setSelectedRoute(nextDestinationRoutes[0].id);
     }, 1500);
   };
 
-  const handleStartJourney = () => {
-    const selectedRouteData = nextDestinationRoutes.find(r => r.id === selectedRoute);
+  const handleStartJourney = (routeId: number) => {
+    const selectedRouteData = nextDestinationRoutes.find(r => r.id === routeId);
     if (selectedRouteData) {
       navigate('/route-overview', { 
         state: { 
@@ -115,6 +118,8 @@ const MultiModalJourney = () => {
             segments: selectedRouteData.segments,
             totalFare: selectedRouteData.totalFare,
             totalTime: selectedRouteData.totalTime,
+            isBest: selectedRouteData.isBest,
+            isSuggested: selectedRouteData.isSuggested,
             onStartJourney: () => {
               toast({
                 title: "Journey Started",
@@ -127,11 +132,20 @@ const MultiModalJourney = () => {
     }
   };
 
+  const handleBack = () => {
+    navigate(-1);
+  };
+
   return (
     <div className="go-container space-y-6 pb-20">
-      <div>
-        <h1 className="text-2xl font-bold mb-2">Plan Your Journey</h1>
-        <p className="text-muted-foreground">Find the best route to your destination</p>
+      <div className="flex items-center gap-2">
+        <Button variant="ghost" size="icon" onClick={handleBack}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <div>
+          <h1 className="text-2xl font-bold mb-2">Plan Your Journey</h1>
+          <p className="text-muted-foreground">Find the best route to your destination</p>
+        </div>
       </div>
 
       <Card>
@@ -186,11 +200,78 @@ const MultiModalJourney = () => {
         </CardContent>
       </Card>
 
-      {searchResults && selectedRoute && (
-        <RouteDetails 
-          {...nextDestinationRoutes.find(r => r.id === selectedRoute)!}
-          onStartJourney={handleStartJourney}
-        />
+      {searchResults && (
+        <div className="space-y-4">
+          <h2 className="text-lg font-medium">Available Routes</h2>
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Type</TableHead>
+                  <TableHead>Journey</TableHead>
+                  <TableHead>Fare</TableHead>
+                  <TableHead>Time</TableHead>
+                  <TableHead>Action</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {nextDestinationRoutes.map(route => (
+                  <TableRow key={route.id} className="cursor-pointer hover:bg-muted/50">
+                    <TableCell>
+                      <div className="flex flex-col gap-1">
+                        {route.isBest && (
+                          <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200">
+                            Best Route
+                          </Badge>
+                        )}
+                        {route.isSuggested && (
+                          <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-200">
+                            Suggested
+                          </Badge>
+                        )}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-wrap gap-1">
+                        {route.segments.map((segment, idx) => (
+                          <span key={segment.id} className="flex items-center">
+                            <Badge variant="outline" className={segment.color}>
+                              {segment.mode}
+                            </Badge>
+                            {idx < route.segments.length - 1 && (
+                              <span className="px-1">→</span>
+                            )}
+                          </span>
+                        ))}
+                      </div>
+                    </TableCell>
+                    <TableCell>₹{route.totalFare}</TableCell>
+                    <TableCell>{route.totalTime} mins</TableCell>
+                    <TableCell>
+                      <div className="flex gap-1">
+                        <Button 
+                          size="sm" 
+                          onClick={() => handleStartJourney(route.id)}
+                        >
+                          Start Journey
+                        </Button>
+                        <Button 
+                          size="sm" 
+                          variant="outline"
+                          onClick={() => {
+                            toast.success("Route saved to favorites");
+                          }}
+                        >
+                          <Star className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        </div>
       )}
     </div>
   );
