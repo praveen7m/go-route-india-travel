@@ -1,9 +1,10 @@
-import { useState, useEffect } from "react";
+
+import { useState } from "react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Search, RefreshCw, User, Bus, Car, Train, Navigation } from "lucide-react";
+import { MapPin, Search, RefreshCw } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import RouteDetails from "@/components/journey/RouteDetails";
 import { useNavigate } from "react-router-dom";
@@ -109,9 +110,11 @@ const MultiModalJourney = () => {
       navigate('/route-overview', { 
         state: { 
           routeData: {
-            ...selectedRouteData,
             from,
             to,
+            segments: selectedRouteData.segments,
+            totalFare: selectedRouteData.totalFare,
+            totalTime: selectedRouteData.totalTime,
             onStartJourney: () => {
               toast({
                 title: "Journey Started",
