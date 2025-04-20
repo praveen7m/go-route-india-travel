@@ -3,7 +3,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Search, RefreshCw } from "lucide-react";
+import { MapPin, Search, RefreshCw, User, Bus, Car, Train, Navigation } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import RouteDetails from "@/components/journey/RouteDetails";
 
@@ -14,7 +14,6 @@ const nextDestinationRoutes = [
       { 
         id: 1, 
         mode: "walk", 
-        icon: <User size={16} className="text-gray-500" />, 
         description: "350m to nearest bus stop", 
         fare: 0, 
         time: 5,
@@ -23,7 +22,6 @@ const nextDestinationRoutes = [
       { 
         id: 2, 
         mode: "bus", 
-        icon: <Bus size={16} className="text-gray-500" />, 
         description: "Bus #27B to Anna Nagar", 
         fare: 15, 
         time: 12,
@@ -32,7 +30,6 @@ const nextDestinationRoutes = [
       { 
         id: 3, 
         mode: "auto", 
-        icon: <Car size={16} className="text-gray-500" />, 
         description: "Auto to Final Destination", 
         fare: 35, 
         time: 7,
@@ -48,7 +45,6 @@ const nextDestinationRoutes = [
       { 
         id: 1, 
         mode: "walk", 
-        icon: <User size={16} className="text-gray-500" />, 
         description: "200m to metro station", 
         fare: 0, 
         time: 3,
@@ -57,7 +53,6 @@ const nextDestinationRoutes = [
       { 
         id: 2, 
         mode: "metro", 
-        icon: <Train size={16} className="text-gray-500" />, 
         description: "Metro to Central Station", 
         fare: 30, 
         time: 15,
@@ -66,7 +61,6 @@ const nextDestinationRoutes = [
       { 
         id: 3, 
         mode: "walk", 
-        icon: <User size={16} className="text-gray-500" />, 
         description: "Walk to Final Destination", 
         fare: 0, 
         time: 8,

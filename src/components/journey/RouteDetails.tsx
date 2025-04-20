@@ -2,7 +2,7 @@
 import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { User, Bus, Car, Navigation } from "lucide-react";
+import { User, Bus, Car, Navigation, Train } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
 interface RouteDetailsProps {
@@ -32,6 +32,8 @@ const RouteDetails: React.FC<RouteDetailsProps> = ({
         return <Bus size={16} className="text-gray-500" />;
       case 'auto':
         return <Car size={16} className="text-gray-500" />;
+      case 'metro':
+        return <Train size={16} className="text-gray-500" />;
       default:
         return <Navigation size={16} className="text-gray-500" />;
     }
