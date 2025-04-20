@@ -20,11 +20,11 @@ import {
 import { toast } from "sonner";
 import type { StopDetails } from '@/types/bus-route';
 
-// Import new components
 import LocationDetection from "@/components/indoor-navigation/LocationDetection";
 import QRScanner from "@/components/indoor-navigation/QRScanner";
 import NavigationComplete from "@/components/indoor-navigation/NavigationComplete";
 import NavigationProgress from "@/components/indoor-navigation/NavigationProgress";
+import ARNavigationView from "@/components/indoor-navigation/ARNavigationView";
 
 const IndoorNavigation = () => {
   const [isScanning, setIsScanning] = useState(false);
@@ -42,6 +42,8 @@ const IndoorNavigation = () => {
   const [calculatingPath, setCalculatingPath] = useState(false);
   const [currentCheckpoint, setCurrentCheckpoint] = useState("");
   const [showCompletionDialog, setShowCompletionDialog] = useState(false);
+  const [isOffRoute, setIsOffRoute] = useState(false);
+  const [currentDirection, setCurrentDirection] = useState("Walk straight 10m, then turn left");
   
   const indoorLocations = [
     {
@@ -143,26 +145,42 @@ const IndoorNavigation = () => {
     {
       name: "Entry Gate A",
       platform: "Ground Floor",
-      status: "passed",
-      isPassed: true
+      status: "on-time",
+      isPassed: true,
+      arrivalTime: "10:30 AM",
+      departureTime: "10:35 AM",
+      distance: "0m",
+      isNext: false
     },
     {
       name: "Security Checkpoint 3",
       platform: "Ground Floor",
       status: "on-time",
-      isPassed: false
+      isPassed: false,
+      arrivalTime: "10:40 AM",
+      departureTime: "10:42 AM",
+      distance: "50m",
+      isNext: true
     },
     {
       name: "Final Stretch",
       platform: "Platform 2",
-      status: "pending",
-      isPassed: false
+      status: "on-time",
+      isPassed: false,
+      arrivalTime: "10:45 AM",
+      departureTime: "10:47 AM",
+      distance: "100m",
+      isNext: false
     },
     {
       name: destinationBay,
       platform: "Platform 2",
-      status: "pending",
-      isPassed: false
+      status: "on-time",
+      isPassed: false,
+      arrivalTime: "10:50 AM",
+      departureTime: "10:55 AM",
+      distance: "150m",
+      isNext: false
     }
   ];
 
@@ -275,6 +293,23 @@ const IndoorNavigation = () => {
         handleCompleteNavigation();
       }
     }
+  };
+
+  const handleOpenARView = () => {
+    setShowARNavigation(true);
+  };
+
+  const handleRecalculateRoute = () => {
+    setIsOffRoute(false);
+    setCurrentDirection("Continue straight 15m to Security Checkpoint");
+    toast.success("Route recalculated", {
+      description: "We've found a new path to your destination."
+    });
+  };
+
+  const handleToggleOffRoute = () => {
+    setIsOffRoute(!isOffRoute);
+    toast(isOffRoute ? "Back on route" : "Simulating off-route scenario");
   };
 
   const renderStepContent = () => {
@@ -588,7 +623,9 @@ const IndoorNavigation = () => {
                 </div>
               </div>
               
-              <QrCode value={45} className="mb-4" />
+              <div className="w-full h-12 flex items-center justify-center mb-4">
+                <div className="w-16 h-16 border-4 border-t-accent border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
+              </div>
               
               <div className="text-sm text-muted-foreground">
                 This will only take a moment...
@@ -599,13 +636,37 @@ const IndoorNavigation = () => {
         
       case 5:
         return (
-          <NavigationProgress
-            currentCheckpoint={currentCheckpoint}
-            navigationProgress={navigationProgress}
-            onScanCheckpoint={() => setShowQrScanner(true)}
-            onComplete={handleCompleteNavigation}
-            stops={stops}
-          />
+          <>
+            <NavigationProgress
+              currentCheckpoint={currentCheckpoint}
+              navigationProgress={navigationProgress}
+              onScanCheckpoint={() => {
+                setShowQrScanner(true);
+                setIsScanning(true);
+                setTimeout(() => {
+                  setIsScanning(false);
+                }, 2000);
+              }}
+              onComplete={handleCompleteNavigation}
+              stops={stops}
+            />
+            
+            <div className="flex gap-3 mb-6">
+              <Button 
+                className="flex-1 bg-accent hover:bg-accent/90" 
+                onClick={handleOpenARView}
+              >
+                Start AR Navigation
+              </Button>
+              <Button 
+                className="flex-1"
+                variant="outline"
+                onClick={handleToggleOffRoute}
+              >
+                {isOffRoute ? "Reset Route" : "Simulate Off-Route"}
+              </Button>
+            </div>
+          </>
         );
         
       default:
@@ -694,6 +755,27 @@ const IndoorNavigation = () => {
         isScanning={isScanning}
         onOpenChange={setShowQrScanner}
         onScanComplete={handleScanComplete}
+        title={currentStep === 5 ? "Scan Checkpoint QR" : "Scan QR Code"}
+        description={currentStep === 5 ? "Scan the checkpoint QR to confirm you're on the right track" : "Position the QR code in the frame to scan"}
+        isCheckpoint={currentStep === 5}
+      />
+      
+      <ARNavigationView
+        isOpen={showARNavigation}
+        onOpenChange={setShowARNavigation}
+        currentDirection={currentDirection}
+        onScanQR={() => {
+          setShowARNavigation(false);
+          setShowQrScanner(true);
+          setIsScanning(true);
+        }}
+        onViewMap={() => {
+          setShowARNavigation(false);
+        }}
+        isOffRoute={isOffRoute}
+        onRecalculate={handleRecalculateRoute}
+        fromLocation="Entry Gate A"
+        toLocation={destinationBay}
       />
       
       <NavigationComplete
