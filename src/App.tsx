@@ -1,4 +1,3 @@
-
 import { Toaster as ShadcnToaster } from "@/components/ui/toaster";
 import { Toaster as SonnerToaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -18,6 +17,7 @@ import IndoorNavigation from "@/pages/IndoorNavigation";
 import MultiModalJourney from "@/pages/MultiModalJourney";
 import NotFound from "@/pages/NotFound";
 import SavedRoutes from "@/pages/SavedRoutes";
+import RouteOverview from "@/pages/RouteOverview";
 
 const queryClient = new QueryClient();
 
@@ -41,6 +41,7 @@ const App = () => (
                 <Route path="chatbot" element={<Chatbot />} />
                 <Route path="sos" element={<SOS />} />
                 <Route path="saved-routes" element={<SavedRoutes />} />
+                <Route path="route-overview" element={<RouteOverview />} />
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>

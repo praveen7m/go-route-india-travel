@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { MapPin, Search, RefreshCw, User, Bus, Car, Train, Navigation } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import RouteDetails from "@/components/journey/RouteDetails";
+import { useNavigate } from "react-router-dom";
 
 const nextDestinationRoutes = [
   {
@@ -79,6 +80,7 @@ const MultiModalJourney = () => {
   const [searchResults, setSearchResults] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
   const [selectedRoute, setSelectedRoute] = useState<number | null>(null);
+  const navigate = useNavigate();
 
   const handleSearch = () => {
     if (!from || !to) {
@@ -102,10 +104,24 @@ const MultiModalJourney = () => {
   };
 
   const handleStartJourney = () => {
-    toast({
-      title: "Journey Started",
-      description: "Follow the navigation instructions to reach your destination"
-    });
+    const selectedRouteData = nextDestinationRoutes.find(r => r.id === selectedRoute);
+    if (selectedRouteData) {
+      navigate('/route-overview', { 
+        state: { 
+          routeData: {
+            ...selectedRouteData,
+            from,
+            to,
+            onStartJourney: () => {
+              toast({
+                title: "Journey Started",
+                description: "Follow the navigation instructions to reach your destination"
+              });
+            }
+          }
+        }
+      });
+    }
   };
 
   return (
