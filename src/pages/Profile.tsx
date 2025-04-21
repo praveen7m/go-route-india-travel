@@ -22,6 +22,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { toast } from "sonner";
 import GoRouteLogo from "@/components/GoRouteLogo";
 import FloatingChatButton from "@/components/FloatingChatButton";
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -72,7 +73,25 @@ const Profile = () => {
     
     toast(`${notifications[key] ? 'Disabled' : 'Enabled'} ${key.replace(/([A-Z])/g, ' $1').toLowerCase()} notifications`);
   };
-  
+
+  // MOCK: Generate unique User ID (in real app, should come from backend/auth)
+  const userId = "USR123456";
+
+  // State for profile image
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+
+  // Profile image upload handler
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (ev) => {
+        setProfileImage(ev.target?.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
   return (
     <div className="go-container space-y-6 pb-16">
       <div className="flex items-center justify-between">
@@ -95,13 +114,27 @@ const Profile = () => {
           </Button>
         </div>
       </div>
-      
+      <div className="flex flex-col items-center">
+        <div className="relative group mb-2">
+          <Avatar className="h-24 w-24">
+            <AvatarImage src={profileImage || "/lovable-uploads/goroute-logo.png"} alt={userData.name} />
+            <AvatarFallback>{userData.name?.[0] ?? "U"}</AvatarFallback>
+          </Avatar>
+          {isEditing && (
+            <>
+              <label htmlFor="profile-upload" className="absolute inset-0 bg-black/40 flex items-center justify-center text-white opacity-0 group-hover:opacity-100 rounded-full cursor-pointer">
+                Change
+                <input id="profile-upload" type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+              </label>
+            </>
+          )}
+        </div>
+        <div className="text-sm text-muted-foreground">User ID: <span className="font-mono">{userId}</span></div>
+      </div>
       <Tabs defaultValue="profile" className="w-full">
-        <TabsList className="grid w-full grid-cols-2">
+        <TabsList className="grid w-full grid-cols-1">
           <TabsTrigger value="profile">Profile</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
-        
         <TabsContent value="profile" className="space-y-4 mt-4">
           <Card>
             <CardHeader className="pb-3">
@@ -252,140 +285,6 @@ const Profile = () => {
                 Access SOS Features
               </Button>
             </CardContent>
-          </Card>
-        </TabsContent>
-        
-        <TabsContent value="settings" className="space-y-4 mt-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>App Settings</CardTitle>
-              <CardDescription>Customize your app experience</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-base flex items-center gap-2">
-                    <Moon className="h-4 w-4" />
-                    Dark Mode
-                  </Label>
-                  <div className="text-sm text-muted-foreground">
-                    Switch between light and dark themes
-                  </div>
-                </div>
-                <Switch
-                  checked={theme === "dark"}
-                  onCheckedChange={(checked) => setTheme(checked ? "dark" : "light")}
-                />
-              </div>
-              
-              <Separator />
-              
-              <div className="flex items-center justify-between">
-                <div className="space-y-0.5">
-                  <Label className="text-base flex items-center gap-2">
-                    <Globe className="h-4 w-4" />
-                    Language
-                  </Label>
-                  <div className="text-sm text-muted-foreground">
-                    Change application language
-                  </div>
-                </div>
-                <Button variant="outline" onClick={() => setShowLanguageSelector(true)}>
-                  {language === 'en' ? 'English' : language === 'hi' ? 'हिंदी' : 'தமிழ்'}
-                </Button>
-              </div>
-              
-              <Separator />
-              
-              <div className="space-y-3">
-                <h3 className="text-base font-medium flex items-center gap-2">
-                  <Bell className="h-4 w-4" />
-                  Notification Settings
-                </h3>
-                
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="busArrival" className="flex-1 cursor-pointer">
-                      Bus Arrival Alerts
-                    </Label>
-                    <Switch 
-                      id="busArrival" 
-                      checked={notifications.busArrival}
-                      onCheckedChange={() => toggleNotification('busArrival')}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="seatAvailability" className="flex-1 cursor-pointer">
-                      Seat Availability Updates
-                    </Label>
-                    <Switch 
-                      id="seatAvailability" 
-                      checked={notifications.seatAvailability}
-                      onCheckedChange={() => toggleNotification('seatAvailability')}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="bookingConfirmations" className="flex-1 cursor-pointer">
-                      Booking Confirmations
-                    </Label>
-                    <Switch 
-                      id="bookingConfirmations" 
-                      checked={notifications.bookingConfirmations}
-                      onCheckedChange={() => toggleNotification('bookingConfirmations')}
-                    />
-                  </div>
-                  
-                  <div className="flex items-center justify-between">
-                    <Label htmlFor="promotionalUpdates" className="flex-1 cursor-pointer">
-                      Promotional Updates
-                    </Label>
-                    <Switch 
-                      id="promotionalUpdates" 
-                      checked={notifications.promotionalUpdates}
-                      onCheckedChange={() => toggleNotification('promotionalUpdates')}
-                    />
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader>
-              <CardTitle>About & Support</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-2">
-              <Button variant="outline" className="w-full justify-start" onClick={() => navigate("/how-it-works")}>
-                <Info className="mr-2 h-4 w-4" />
-                How GoRoute Works
-              </Button>
-              
-              <Button variant="outline" className="w-full justify-start">
-                <HeadphonesIcon className="mr-2 h-4 w-4" />
-                Contact Support
-              </Button>
-              
-              <div className="pt-4 pb-2">
-                <Separator />
-              </div>
-              
-              <Button 
-                variant="destructive" 
-                className="w-full" 
-                onClick={() => setShowLogoutDialog(true)}
-              >
-                <LogOut className="mr-2 h-4 w-4" />
-                Logout
-              </Button>
-            </CardContent>
-            <CardFooter className="flex justify-center border-t pt-4">
-              <div className="text-center">
-                <GoRouteLogo className="h-6 w-auto mx-auto mb-2" />
-                <p className="text-xs text-muted-foreground">Version 1.0.0</p>
-              </div>
-            </CardFooter>
           </Card>
         </TabsContent>
       </Tabs>

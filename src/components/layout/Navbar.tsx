@@ -1,26 +1,44 @@
-import { Link } from "react-router-dom";
+
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
-import { Sun, Moon, Menu, X } from "lucide-react";
+import { Sun, Moon, Menu, X, ArrowLeft } from "lucide-react";
 import { useState } from "react";
 import LanguageSwitcher from "./LanguageSwitcher";
 
 const Navbar = () => {
   const { theme, setTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const location = useLocation();
+  const navigate = useNavigate();
 
   const toggleMenu = () => setIsMenuOpen(!isMenuOpen);
+
+  // Show back button on all pages except Home '/'
+  const shouldShowBack = location.pathname !== "/";
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-md border-b border-border">
       <div className="container mx-auto px-4 h-16 flex items-center justify-between">
-        <Link to="/" className="flex items-center gap-2">
-          <img 
-            src="/lovable-uploads/goroute-logo.png" 
-            alt="GoRoute Logo" 
-            className="h-10 w-auto" 
-          />
-        </Link>
+        <div className="flex items-center gap-2">
+          {shouldShowBack && (
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={() => navigate(-1)}
+              aria-label="Go back"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </Button>
+          )}
+          <Link to="/" className="flex items-center gap-2">
+            <img 
+              src="/lovable-uploads/goroute-logo.png" 
+              alt="GoRoute Logo" 
+              className="h-10 w-auto" 
+            />
+          </Link>
+        </div>
 
         <div className="hidden md:flex items-center gap-4">
           <LanguageSwitcher />
