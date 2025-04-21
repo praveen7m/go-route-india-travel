@@ -1,4 +1,3 @@
-
 import { useState } from "react";
 import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
@@ -41,42 +40,11 @@ const CityBus = () => {
     });
   };
 
-  // Mock city bus data
-  const buses = [
-    {
-      id: 1,
-      number: "500A",
-      route: "Indiranagar to Majestic",
-      arrivalTime: "5 mins",
-      nextBus: "15 mins",
-      crowdLevel: "low",
-      cost: "₹35",
-      distance: "7.2 km",
-      estimatedTime: "25 mins"
-    },
-    {
-      id: 2,
-      number: "401M",
-      route: "Whitefield to Majestic",
-      arrivalTime: "12 mins",
-      nextBus: "25 mins",
-      crowdLevel: "medium",
-      cost: "₹45",
-      distance: "12.5 km",
-      estimatedTime: "40 mins"
-    },
-    {
-      id: 3,
-      number: "300K",
-      route: "Electronic City to Shivajinagar",
-      arrivalTime: "20 mins",
-      nextBus: "40 mins",
-      crowdLevel: "high",
-      cost: "₹50",
-      distance: "15.8 km",
-      estimatedTime: "55 mins"
-    },
-  ];
+  const handleTrackBus = (busNumber: string) => {
+    toast.success("Tracking Activated", {
+      description: `You are now tracking Bus ${busNumber}.`
+    });
+  };
 
   const getCrowdBadge = (level: string) => {
     switch (level) {
@@ -116,6 +84,42 @@ const CityBus = () => {
         return "0%";
     }
   };
+
+  const buses = [
+    {
+      id: 1,
+      number: "500A",
+      route: "Indiranagar to Majestic",
+      arrivalTime: "5 mins",
+      nextBus: "15 mins",
+      crowdLevel: "low",
+      cost: "₹35",
+      distance: "7.2 km",
+      estimatedTime: "25 mins"
+    },
+    {
+      id: 2,
+      number: "401M",
+      route: "Whitefield to Majestic",
+      arrivalTime: "12 mins",
+      nextBus: "25 mins",
+      crowdLevel: "medium",
+      cost: "₹45",
+      distance: "12.5 km",
+      estimatedTime: "40 mins"
+    },
+    {
+      id: 3,
+      number: "300K",
+      route: "Electronic City to Shivajinagar",
+      arrivalTime: "20 mins",
+      nextBus: "40 mins",
+      crowdLevel: "high",
+      cost: "₹50",
+      distance: "15.8 km",
+      estimatedTime: "55 mins"
+    },
+  ];
 
   return (
     <div className="go-container space-y-6">
@@ -253,27 +257,20 @@ const CityBus = () => {
                         id={`wake-me-${bus.id}`}
                         onCheckedChange={() => handleWakeMeUp(bus.number)}
                       />
+                      <Button 
+                        size="sm" 
+                        variant="outline" 
+                        className="ml-2"
+                        onClick={() => handleTrackBus(bus.number)}
+                      >
+                        Track
+                      </Button>
                     </div>
                   </div>
                 </div>
               </CardContent>
             </Card>
           ))}
-
-          <Card>
-            <CardContent className="p-4">
-              <h3 className="font-medium mb-2">Journey Planner</h3>
-              <div className="flex items-center gap-2 text-sm mb-4">
-                <div className="bg-accent/10 text-accent p-1 rounded">Current Stop</div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground" />
-                <div className="bg-muted p-1 rounded">Set destination</div>
-              </div>
-              <Button className="w-full" variant="outline">
-                <Bus className="mr-2 h-4 w-4" />
-                Plan Multi-Modal Journey
-              </Button>
-            </CardContent>
-          </Card>
         </div>
       )}
     </div>

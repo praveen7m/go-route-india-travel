@@ -111,6 +111,10 @@ const IndoorNavigation = () => {
     }
   ];
 
+  // NEW: Allow "From" and "To" fields to be editable after terminal selection
+  const [fromField, setFromField] = useState("");  // Editable From
+  const [toField, setToField] = useState("");      // Editable To
+
   useEffect(() => {
     const detectLocation = () => {
       const randomLocation = indoorLocations[Math.floor(Math.random() * indoorLocations.length)];
@@ -118,6 +122,7 @@ const IndoorNavigation = () => {
       const randomGate = gates[Math.floor(Math.random() * gates.length)];
       
       setDetectedLocation(`${randomLocation.name} – Gate ${randomGate}`);
+      setFromField(`${randomLocation.name} – Gate ${randomGate}`); // Set as default for editable From
       
       toast.info("Location detected", {
         description: `You are at: ${randomLocation.name} – Gate ${randomGate}`
@@ -312,6 +317,7 @@ const IndoorNavigation = () => {
     toast(isOffRoute ? "Back on route" : "Simulating off-route scenario");
   };
 
+  // --- Updated Step Content Render ---
   const renderStepContent = () => {
     switch (currentStep) {
       case 0:
@@ -324,6 +330,22 @@ const IndoorNavigation = () => {
               onChangeLocation={handleChangeLocation}
               onStartNavigation={handleStartNavigation}
             />
+            
+            {/* Inputs for editing From/To fields */}
+            <div className="flex gap-4 mb-4 mt-4">
+              <Input
+                value={fromField}
+                onChange={e => setFromField(e.target.value)}
+                placeholder="From"
+                className="flex-1"
+              />
+              <Input
+                value={toField}
+                onChange={e => setToField(e.target.value)}
+                placeholder="To"
+                className="flex-1"
+              />
+            </div>
             
             <Card className="bg-accent/10 border-accent/20">
               <CardContent className="p-6">
