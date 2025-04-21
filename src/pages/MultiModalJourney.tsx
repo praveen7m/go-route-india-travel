@@ -1,175 +1,159 @@
 
-import { useState } from "react";
-import { useLanguage } from "@/hooks/useLanguage";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Card, CardContent } from "@/components/ui/card";
-import { MapPin, Search, RefreshCw, ArrowLeft, Star } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-
-const nextDestinationRoutes = [
-  {
-    id: 1,
-    segments: [
-      { 
-        id: 1, 
-        mode: "walk", 
-        description: "350m to nearest bus stop", 
-        fare: 0, 
-        time: 5,
-        color: "bg-blue-100 text-blue-700" 
-      },
-      { 
-        id: 2, 
-        mode: "bus", 
-        description: "Bus #27B to Anna Nagar", 
-        fare: 15, 
-        time: 12,
-        color: "bg-green-100 text-green-700"
-      },
-      { 
-        id: 3, 
-        mode: "auto", 
-        description: "Auto to Final Destination", 
-        fare: 35, 
-        time: 7,
-        color: "bg-orange-100 text-orange-700"
-      }
-    ],
-    totalFare: 50,
-    totalTime: 24,
-    isBest: false,
-    isSuggested: true
-  },
-  {
-    id: 2,
-    segments: [
-      { 
-        id: 1, 
-        mode: "walk", 
-        description: "200m to metro station", 
-        fare: 0, 
-        time: 3,
-        color: "bg-blue-100 text-blue-700" 
-      },
-      { 
-        id: 2, 
-        mode: "metro", 
-        description: "Metro to Central Station", 
-        fare: 30, 
-        time: 15,
-        color: "bg-purple-100 text-purple-700"
-      },
-      { 
-        id: 3, 
-        mode: "walk", 
-        description: "Walk to Final Destination", 
-        fare: 0, 
-        time: 8,
-        color: "bg-blue-100 text-blue-700" 
-      }
-    ],
-    totalFare: 30,
-    totalTime: 26,
-    isBest: true,
-    isSuggested: false
-  }
-];
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Card, CardContent } from '@/components/ui/card';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableHeader, 
+  TableHead, 
+  TableRow 
+} from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
+import { Calendar, Clock, DollarSign, MapPin, Train, Bus, Navigation2, ArrowRight } from 'lucide-react';
+import { toast } from '@/hooks/use-toast';
 
 const MultiModalJourney = () => {
-  const { t } = useLanguage();
-  const [from, setFrom] = useState("");
-  const [to, setTo] = useState("");
-  const [searchResults, setSearchResults] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [selectedRoute, setSelectedRoute] = useState<number | null>(null);
   const navigate = useNavigate();
+  const [step, setStep] = useState<number>(1);
+  const [from, setFrom] = useState<string>('');
+  const [to, setTo] = useState<string>('');
+  const [results, setResults] = useState<boolean>(false);
+
+  const routes = [
+    {
+      id: 1,
+      isBest: true,
+      isSuggested: false,
+      from: 'Koramangala',
+      to: 'Whitefield',
+      totalTime: '55 min',
+      totalFare: '₹120',
+      segments: [
+        {
+          type: 'bus',
+          name: 'Bus 500C',
+          from: 'Koramangala',
+          to: 'Indiranagar',
+          duration: 20,
+          departureTime: '10:15 AM',
+          arrivalTime: '10:35 AM',
+          stops: ['Forum Mall', 'Sony World Signal', '100ft Road'],
+          fare: 30
+        },
+        {
+          type: 'metro',
+          name: 'Purple Line',
+          from: 'Indiranagar',
+          to: 'Byappanahalli',
+          duration: 15,
+          departureTime: '10:45 AM',
+          arrivalTime: '11:00 AM',
+          stops: ['MG Road', 'Trinity', 'Halasuru'],
+          fare: 40
+        },
+        {
+          type: 'bus',
+          name: 'Bus 335E',
+          from: 'Byappanahalli',
+          to: 'Whitefield',
+          duration: 20,
+          departureTime: '11:10 AM',
+          arrivalTime: '11:30 AM',
+          stops: ['KR Puram', 'Mahadevapura', 'Hoodi'],
+          fare: 50
+        }
+      ]
+    },
+    {
+      id: 2,
+      isBest: false,
+      isSuggested: true,
+      from: 'Koramangala',
+      to: 'Whitefield',
+      totalTime: '65 min',
+      totalFare: '₹90',
+      segments: [
+        {
+          type: 'bus',
+          name: 'Bus 500D',
+          from: 'Koramangala',
+          to: 'Marathahalli',
+          duration: 35,
+          departureTime: '10:15 AM',
+          arrivalTime: '10:50 AM',
+          stops: ['Domlur', 'HAL', 'Kundalahalli Gate'],
+          fare: 40
+        },
+        {
+          type: 'bus',
+          name: 'Bus 320',
+          from: 'Marathahalli',
+          to: 'Whitefield',
+          duration: 30,
+          departureTime: '11:00 AM',
+          arrivalTime: '11:30 AM',
+          stops: ['ITPL', 'Hope Farm', 'Phoenix Mall'],
+          fare: 50
+        }
+      ]
+    }
+  ];
 
   const handleSearch = () => {
     if (!from || !to) {
       toast({
-        title: "Missing Information",
-        description: "Please enter both starting location and destination",
+        title: "Error",
+        description: "Please enter both source and destination",
         variant: "destructive"
       });
       return;
     }
     
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setSearchResults(true);
-      setIsLoading(false);
-    }, 1500);
+    setResults(true);
   };
 
-  const handleStartJourney = (routeId: number) => {
-    const selectedRouteData = nextDestinationRoutes.find(r => r.id === routeId);
-    if (selectedRouteData) {
-      navigate('/route-overview', { 
-        state: { 
-          routeData: {
-            from,
-            to,
-            segments: selectedRouteData.segments,
-            totalFare: selectedRouteData.totalFare,
-            totalTime: selectedRouteData.totalTime,
-            isBest: selectedRouteData.isBest,
-            isSuggested: selectedRouteData.isSuggested,
-            onStartJourney: () => {
-              toast({
-                title: "Journey Started",
-                description: "Follow the navigation instructions to reach your destination"
-              });
-            }
-          }
-        }
-      });
-    }
+  const handleReset = () => {
+    setFrom('');
+    setTo('');
+    setResults(false);
   };
 
-  const handleBack = () => {
-    navigate(-1);
+  const handleStartJourney = (route: any) => {
+    navigate('/route-overview', { state: { routeData: route } });
   };
 
   return (
-    <div className="go-container space-y-6 pb-20">
-      <div className="flex items-center gap-2">
-        <Button variant="ghost" size="icon" onClick={handleBack}>
-          <ArrowLeft className="h-5 w-5" />
-        </Button>
-        <div>
-          <h1 className="text-2xl font-bold mb-2">Plan Your Journey</h1>
-          <p className="text-muted-foreground">Find the best route to your destination</p>
-        </div>
+    <div className="go-container space-y-6 pb-16">
+      <div className="space-y-2">
+        <h1 className="text-2xl font-bold">Multi-Modal Journey</h1>
+        <p className="text-muted-foreground">Plan your journey using different modes of transport</p>
       </div>
-
+      
       <Card>
-        <CardContent className="p-6">
-          <div className="space-y-4">
+        <CardContent className="p-5 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
               <label htmlFor="from" className="text-sm font-medium">From</label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
+                <Input 
                   id="from"
-                  placeholder="Enter starting location"
+                  placeholder="Enter starting point"
                   className="pl-9"
                   value={from}
                   onChange={(e) => setFrom(e.target.value)}
                 />
               </div>
             </div>
-
             <div className="space-y-2">
               <label htmlFor="to" className="text-sm font-medium">To</label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
+                <Input 
                   id="to"
                   placeholder="Enter destination"
                   className="pl-9"
@@ -178,99 +162,118 @@ const MultiModalJourney = () => {
                 />
               </div>
             </div>
-
-            <Button 
-              className="w-full" 
-              onClick={handleSearch}
-              disabled={!from || !to || isLoading}
-            >
-              {isLoading ? (
-                <span className="flex items-center">
-                  <RefreshCw className="animate-spin -ml-1 mr-2 h-4 w-4" />
-                  Searching...
-                </span>
-              ) : (
-                <>
-                  <Search className="mr-2 h-4 w-4" />
-                  Find Routes
-                </>
-              )}
+          </div>
+          
+          <div className="flex justify-between">
+            <Button variant="outline" onClick={handleReset}>
+              Reset
+            </Button>
+            <Button onClick={handleSearch}>
+              Search Routes
             </Button>
           </div>
         </CardContent>
       </Card>
-
-      {searchResults && (
-        <div className="space-y-4">
-          <h2 className="text-lg font-medium">Available Routes</h2>
-          <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Type</TableHead>
-                  <TableHead>Journey</TableHead>
-                  <TableHead>Fare</TableHead>
-                  <TableHead>Time</TableHead>
-                  <TableHead>Action</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {nextDestinationRoutes.map(route => (
-                  <TableRow key={route.id} className="cursor-pointer hover:bg-muted/50">
-                    <TableCell>
-                      <div className="flex flex-col gap-1">
-                        {route.isBest && (
-                          <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200">
-                            Best Route
-                          </Badge>
-                        )}
-                        {route.isSuggested && (
-                          <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-200">
-                            Suggested
-                          </Badge>
-                        )}
+      
+      {results && (
+        <div className="space-y-6">
+          <h2 className="text-xl font-semibold">Available Routes</h2>
+          
+          <div className="space-y-4">
+            {routes.map((route) => (
+              <Card key={route.id} className="overflow-hidden border-2 hover:shadow-md transition-all duration-200 relative">
+                {route.isBest && (
+                  <div className="absolute top-0 right-0">
+                    <Badge variant="outline" className="m-2 bg-green-100 text-green-700 border-green-200">
+                      Best Route
+                    </Badge>
+                  </div>
+                )}
+                {route.isSuggested && (
+                  <div className="absolute top-0 right-0">
+                    <Badge variant="outline" className="m-2 bg-blue-100 text-blue-700 border-blue-200">
+                      Suggested
+                    </Badge>
+                  </div>
+                )}
+                <CardContent className="p-0">
+                  <div className="p-4 border-b">
+                    <div className="flex justify-between items-center">
+                      <div>
+                        <h3 className="font-medium">{route.from} to {route.to}</h3>
+                        <div className="flex items-center gap-4 text-sm text-muted-foreground mt-1">
+                          <div className="flex items-center gap-1">
+                            <Clock className="h-4 w-4" />
+                            {route.totalTime}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <DollarSign className="h-4 w-4" />
+                            {route.totalFare}
+                          </div>
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-4 w-4" />
+                            Today
+                          </div>
+                        </div>
                       </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {route.segments.map((segment, idx) => (
-                          <span key={segment.id} className="flex items-center">
-                            <Badge variant="outline" className={segment.color}>
-                              {segment.mode}
-                            </Badge>
-                            {idx < route.segments.length - 1 && (
-                              <span className="px-1">→</span>
-                            )}
-                          </span>
-                        ))}
-                      </div>
-                    </TableCell>
-                    <TableCell>₹{route.totalFare}</TableCell>
-                    <TableCell>{route.totalTime} mins</TableCell>
-                    <TableCell>
-                      <div className="flex gap-1">
-                        <Button 
-                          size="sm" 
-                          onClick={() => handleStartJourney(route.id)}
-                        >
-                          Start Journey
-                        </Button>
-                        <Button 
-                          size="sm" 
-                          variant="outline"
-                          onClick={() => {
-                            toast.success("Route saved to favorites");
-                          }}
-                        >
-                          <Star className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Card>
+                      <Button onClick={() => handleStartJourney(route)}>
+                        Start Journey
+                      </Button>
+                    </div>
+                  </div>
+                  
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Mode</TableHead>
+                        <TableHead>Route</TableHead>
+                        <TableHead>Duration</TableHead>
+                        <TableHead>Time</TableHead>
+                        <TableHead>Fare</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {route.segments.map((segment, idx) => (
+                        <TableRow key={idx}>
+                          <TableCell>
+                            <div className="flex items-center gap-2">
+                              {segment.type === 'bus' ? (
+                                <div className="bg-blue-100 p-1 rounded-full">
+                                  <Bus className="h-4 w-4 text-blue-600" />
+                                </div>
+                              ) : segment.type === 'metro' ? (
+                                <div className="bg-purple-100 p-1 rounded-full">
+                                  <Train className="h-4 w-4 text-purple-600" />
+                                </div>
+                              ) : (
+                                <div className="bg-green-100 p-1 rounded-full">
+                                  <Navigation2 className="h-4 w-4 text-green-600" />
+                                </div>
+                              )}
+                              {segment.name}
+                            </div>
+                          </TableCell>
+                          <TableCell>
+                            <div className="flex items-center gap-1">
+                              {segment.from} <ArrowRight className="h-3 w-3 mx-1" /> {segment.to}
+                            </div>
+                          </TableCell>
+                          <TableCell>{segment.duration} min</TableCell>
+                          <TableCell>
+                            <div className="text-xs">
+                              <div>{segment.departureTime}</div>
+                              <div>{segment.arrivalTime}</div>
+                            </div>
+                          </TableCell>
+                          <TableCell>₹{segment.fare}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
         </div>
       )}
     </div>

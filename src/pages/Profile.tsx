@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -22,6 +21,7 @@ import { useTheme } from "@/components/theme-provider";
 import { useLanguage } from "@/hooks/useLanguage";
 import { toast } from "sonner";
 import GoRouteLogo from "@/components/GoRouteLogo";
+import FloatingChatButton from "@/components/FloatingChatButton";
 
 const Profile = () => {
   const navigate = useNavigate();
@@ -32,7 +32,6 @@ const Profile = () => {
   const [showLogoutDialog, setShowLogoutDialog] = useState(false);
   const [showLanguageSelector, setShowLanguageSelector] = useState(false);
   
-  // User profile data
   const [userData, setUserData] = useState({
     name: "Raj Sharma",
     email: "raj.sharma@example.com",
@@ -42,7 +41,6 @@ const Profile = () => {
     emergencyContact: "+91 98765 12345"
   });
   
-  // Notification settings
   const [notifications, setNotifications] = useState({
     busArrival: true,
     seatAvailability: true,
@@ -51,16 +49,13 @@ const Profile = () => {
   });
   
   const handleUpdateProfile = () => {
-    // Simulate API call
     toast.success("Profile updated successfully");
     setIsEditing(false);
   };
   
   const handleLogout = () => {
-    // Simulate logout
     toast.success("You have been logged out");
     setShowLogoutDialog(false);
-    // Redirect to login page would go here
   };
 
   const handleLanguageChange = (lang: string) => {
@@ -395,7 +390,6 @@ const Profile = () => {
         </TabsContent>
       </Tabs>
       
-      {/* Logout Confirmation Dialog */}
       <Dialog open={showLogoutDialog} onOpenChange={setShowLogoutDialog}>
         <DialogContent>
           <DialogHeader>
@@ -416,7 +410,6 @@ const Profile = () => {
         </DialogContent>
       </Dialog>
       
-      {/* Language Selection Dialog */}
       <Dialog open={showLanguageSelector} onOpenChange={setShowLanguageSelector}>
         <DialogContent>
           <DialogHeader>
@@ -450,6 +443,8 @@ const Profile = () => {
           </div>
         </DialogContent>
       </Dialog>
+      
+      <FloatingChatButton />
     </div>
   );
 };

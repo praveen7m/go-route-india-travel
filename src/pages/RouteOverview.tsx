@@ -19,11 +19,17 @@ const RouteOverview = () => {
   };
 
   const handleShare = () => {
-    toast.success("Route shared successfully");
+    toast({
+      title: "Success",
+      description: "Route shared successfully",
+    });
   };
 
   const handleSave = () => {
-    toast.success("Route saved to favorites");
+    toast({
+      title: "Success",
+      description: "Route saved to favorites",
+    });
   };
 
   if (!routeData) {

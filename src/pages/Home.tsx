@@ -4,6 +4,7 @@ import { useLanguage } from "@/hooks/useLanguage";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import GoRouteLogo from "@/components/GoRouteLogo";
+import FloatingChatButton from "@/components/FloatingChatButton";
 
 const Home = () => {
   const { t } = useLanguage();
@@ -205,6 +206,9 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {/* Add the floating chatbot button */}
+      <FloatingChatButton />
     </div>
   );
 };
