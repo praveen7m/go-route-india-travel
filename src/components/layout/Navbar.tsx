@@ -2,13 +2,15 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useTheme } from "@/components/theme-provider";
 import { Button } from "@/components/ui/button";
-import { Sun, Moon, Menu, X, ArrowLeft } from "lucide-react";
+import { Sun, Moon, Menu, X, ArrowLeft, LogOut } from "lucide-react";
 import { useState } from "react";
 import LanguageSwitcher from "./LanguageSwitcher";
+import LogoutDialog from "./LogoutDialog"; // NEW
 
 const Navbar = () => {
   const { theme, setTheme } = useTheme();
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [logoutOpen, setLogoutOpen] = useState(false); // NEW
   const location = useLocation();
   const navigate = useNavigate();
 
@@ -53,6 +55,15 @@ const Navbar = () => {
           <Link to="/profile">
             <Button variant="outline" size="sm">Profile</Button>
           </Link>
+          {/* Logout Button */}
+          <Button
+            variant="outline"
+            size="icon"
+            aria-label="Logout"
+            onClick={() => setLogoutOpen(true)}
+          >
+            <LogOut className="h-5 w-5" />
+          </Button>
         </div>
 
         <Button
@@ -87,9 +98,20 @@ const Navbar = () => {
                 <><Moon className="h-5 w-5 mr-2" /> Dark Mode</>
               )}
             </Button>
+            {/* Mobile Logout Button */}
+            <Button variant="outline" className="mt-2" onClick={() => {
+              setLogoutOpen(true);
+              toggleMenu();
+            }}>
+              <LogOut className="h-5 w-5 mr-2" />
+              Logout
+            </Button>
           </nav>
         </div>
       )}
+
+      {/* Logout Confirmation Dialog */}
+      <LogoutDialog open={logoutOpen} onOpenChange={setLogoutOpen} />
     </header>
   );
 };

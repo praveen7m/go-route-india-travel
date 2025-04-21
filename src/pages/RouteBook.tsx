@@ -10,6 +10,8 @@ import { busStops } from "@/types/bus-route";
 import WaitlistModal from "@/components/bus/WaitlistModal";
 import WakeMeUpModal from "@/components/bus/WakeMeUpModal";
 import BusTrackingView from "@/components/bus/BusTrackingView";
+import BusSeatSelector from "@/components/bus/BusSeatSelector";
+import BookedTicketModal from "@/components/bus/BookedTicketModal";
 
 const RouteBook = () => {
   const { t } = useLanguage();
@@ -17,12 +19,16 @@ const RouteBook = () => {
   const [fromCity, setFromCity] = useState("");
   const [toCity, setToCity] = useState("");
   const [travelDate, setTravelDate] = useState("");
+  const [busNumber, setBusNumber] = useState(""); // NEW
   const [genderPreference, setGenderPreference] = useState<string | null>(null);
   const [selectedBus, setSelectedBus] = useState<BusData | null>(null);
   const [showWaitlistModal, setShowWaitlistModal] = useState(false);
   const [showWakeMeUpModal, setShowWakeMeUpModal] = useState(false);
   const [showTrackingView, setShowTrackingView] = useState(false);
   const [wakeMeUpBus, setWakeMeUpBus] = useState<BusData | null>(null);
+
+  const [showSeatSelector, setShowSeatSelector] = useState(false); // NEW
+  const [bookedTicket, setBookedTicket] = useState<{ bus: BusData; seats: string[]; amount: number } | null>(null); // NEW
 
   const handleSearch = () => {
     if (!fromCity || !toCity || !travelDate) return;
@@ -43,15 +49,8 @@ const RouteBook = () => {
   };
 
   const handleBookNow = (bus: BusData) => {
-    if (bus.available === 0) {
-      toast("Bus is full. Would you like to join the waitlist?");
-      setSelectedBus(bus);
-      setShowWaitlistModal(true);
-      return;
-    }
     setSelectedBus(bus);
-    toast.success("Booking confirmed! You can now track your bus.");
-    setShowTrackingView(true);
+    setShowSeatSelector(true);
   };
 
   const handleJoinWaitlist = (bus: BusData) => {
@@ -64,9 +63,23 @@ const RouteBook = () => {
     setShowWakeMeUpModal(true);
   };
 
+  const handleViewRoute = (bus: BusData) => {
+    setSelectedBus(bus);
+    setShowTrackingView(true);
+  };
+
   const handleCloseTracking = () => {
     setShowTrackingView(false);
   };
+
+  // When seats are selected and paid
+  const handleSeatsBooked = (bus: BusData, seats: string[], amount: number) => {
+    setShowSeatSelector(false);
+    setBookedTicket({ bus, seats, amount });
+    toast.success("Booking confirmed! You can now view your ticket.");
+  };
+
+  const handleCloseTicket = () => setBookedTicket(null);
 
   return (
     <div className="go-container space-y-6 pb-10">
@@ -82,9 +95,11 @@ const RouteBook = () => {
           fromCity={fromCity}
           toCity={toCity}
           travelDate={travelDate}
+          busNumber={busNumber}
           onFromCityChange={setFromCity}
           onToCityChange={setToCity}
           onTravelDateChange={setTravelDate}
+          onBusNumberChange={setBusNumber}
           onSearch={handleSearch}
         />
       )}
@@ -106,8 +121,42 @@ const RouteBook = () => {
           genderPreference={genderPreference}
           onBookNow={handleBookNow}
           onJoinWaitlist={handleJoinWaitlist}
-          onWakeMeUp={handleWakeMeUp}
+          onViewRoute={handleViewRoute}
           onBack={() => setStep(1)}
+        />
+      )}
+
+      {/* Seat Layout Modal */}
+      {showSeatSelector && selectedBus && (
+        <BusSeatSelector
+          open={showSeatSelector}
+          onOpenChange={setShowSeatSelector}
+          busInfo={{
+            name: selectedBus.type,
+            from: selectedBus.from,
+            to: selectedBus.to,
+            departureTime: selectedBus.departure,
+            arrivalTime: selectedBus.arrival,
+            duration: selectedBus.duration,
+            date: travelDate,
+          }}
+          // Custom prop for when booking is complete - overload onOpenChange
+          onBookComplete={(seats: string[], amount: number) =>
+            handleSeatsBooked(selectedBus, seats, amount)
+          }
+        />
+      )}
+
+      {/* Booked Ticket Modal */}
+      {bookedTicket && (
+        <BookedTicketModal
+          open={!!bookedTicket}
+          onClose={handleCloseTicket}
+          ticket={{
+            ...bookedTicket,
+            travelDate
+          }}
+          onWakeMeUp={() => setShowWakeMeUpModal(true)}
         />
       )}
 
@@ -123,14 +172,14 @@ const RouteBook = () => {
         />
       )}
 
-      {showWakeMeUpModal && wakeMeUpBus && (
+      {showWakeMeUpModal && (wakeMeUpBus || (bookedTicket && bookedTicket.bus)) && (
         <WakeMeUpModal
           open={showWakeMeUpModal}
           onClose={() => setShowWakeMeUpModal(false)}
           busDetails={{
-            number: wakeMeUpBus.number,
-            destination: wakeMeUpBus.to,
-            arrivalTime: wakeMeUpBus.arrival
+            number: wakeMeUpBus?.number || bookedTicket?.bus.number || "",
+            destination: wakeMeUpBus?.to || bookedTicket?.bus.to || "",
+            arrivalTime: wakeMeUpBus?.arrival || bookedTicket?.bus.arrival || ""
           }}
         />
       )}

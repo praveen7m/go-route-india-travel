@@ -27,12 +27,13 @@ interface BusSeatSelectorProps {
     duration: string;
     date: string;
   };
+  onBookComplete?: (seats: string[], amount: number) => void; // NEW
 }
 
 // Single Seat Component
 const Seat = ({ id, type, price, onClick }: SeatProps) => {
   const isSelectable = type === "available" || type === "selected";
-  
+
   const getStyles = () => {
     switch (type) {
       case "available":
@@ -49,7 +50,7 @@ const Seat = ({ id, type, price, onClick }: SeatProps) => {
   };
 
   return (
-    <div 
+    <div
       className={`h-12 w-12 rounded-lg flex items-center justify-center flex-col ${getStyles()}`}
       onClick={() => isSelectable && onClick(id)}
     >
@@ -60,13 +61,19 @@ const Seat = ({ id, type, price, onClick }: SeatProps) => {
   );
 };
 
-const BusSeatSelector = ({ open, onOpenChange, busInfo }: BusSeatSelectorProps) => {
+const BusSeatSelector = ({
+  open,
+  onOpenChange,
+  busInfo,
+  onBookComplete
+}: BusSeatSelectorProps) => {
   // Sample seat data
   const initialSeats = Array.from({ length: 40 }, (_, i) => ({
     id: `${Math.floor(i / 4) + 1}${String.fromCharCode(65 + (i % 4))}`, // 1A, 1B, 1C, etc.
-    type: (Math.random() > 0.7) 
-      ? (Math.random() > 0.7 ? "occupied" : Math.random() > 0.5 ? "reserved" : "ladies") as SeatType 
-      : "available" as SeatType,
+    type:
+      Math.random() > 0.7
+        ? (Math.random() > 0.7 ? "occupied" : Math.random() > 0.5 ? "reserved" : "ladies") as SeatType
+        : "available" as SeatType,
     price: Math.floor(Math.random() * 100) + 700, // Random price between 700-800
   }));
 
@@ -76,10 +83,10 @@ const BusSeatSelector = ({ open, onOpenChange, busInfo }: BusSeatSelectorProps) 
   const handleSeatClick = (id: string) => {
     const newSeats = [...seats];
     const seatIndex = newSeats.findIndex(seat => seat.id === id);
-    
+
     if (seatIndex !== -1) {
       const seat = newSeats[seatIndex];
-      
+
       if (seat.type === "available") {
         newSeats[seatIndex].type = "selected";
         setSelectedSeats([...selectedSeats, id]);
@@ -87,7 +94,7 @@ const BusSeatSelector = ({ open, onOpenChange, busInfo }: BusSeatSelectorProps) 
         newSeats[seatIndex].type = "available";
         setSelectedSeats(selectedSeats.filter(seatId => seatId !== id));
       }
-      
+
       setSeats(newSeats);
     }
   };
@@ -96,6 +103,15 @@ const BusSeatSelector = ({ open, onOpenChange, busInfo }: BusSeatSelectorProps) 
     return seats
       .filter(seat => selectedSeats.includes(seat.id))
       .reduce((total, seat) => total + seat.price, 0);
+  };
+
+  const handleProceed = () => {
+    if (selectedSeats.length === 0) return;
+    // Pass selected seat info to parent
+    if (onBookComplete) {
+      onBookComplete(selectedSeats, getTotalPrice());
+    }
+    onOpenChange(false);
   };
 
   return (
@@ -111,7 +127,9 @@ const BusSeatSelector = ({ open, onOpenChange, busInfo }: BusSeatSelectorProps) 
             <div className="flex justify-between text-sm">
               <div className="flex items-center gap-1">
                 <MapPin className="h-4 w-4" />
-                <span>{busInfo.from} → {busInfo.to}</span>
+                <span>
+                  {busInfo.from} → {busInfo.to}
+                </span>
               </div>
               <div className="flex items-center gap-1">
                 <Clock className="h-4 w-4" />
@@ -120,7 +138,9 @@ const BusSeatSelector = ({ open, onOpenChange, busInfo }: BusSeatSelectorProps) 
             </div>
             <div className="flex justify-between text-sm text-muted-foreground">
               <span>{busInfo.date}</span>
-              <span>{busInfo.departureTime} - {busInfo.arrivalTime}</span>
+              <span>
+                {busInfo.departureTime} - {busInfo.arrivalTime}
+              </span>
             </div>
           </div>
 
@@ -184,7 +204,9 @@ const BusSeatSelector = ({ open, onOpenChange, busInfo }: BusSeatSelectorProps) 
                   <div className="font-bold text-lg">₹{getTotalPrice()}</div>
                 </div>
               </div>
-              <Button className="w-full">Proceed to Payment</Button>
+              <Button className="w-full" onClick={handleProceed}>
+                Proceed to Payment
+              </Button>
             </div>
           ) : (
             <div className="flex items-center justify-center gap-2 text-muted-foreground p-2">

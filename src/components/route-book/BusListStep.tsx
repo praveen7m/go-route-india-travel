@@ -2,7 +2,7 @@
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { MapPin, ChevronRight, Calendar, Bus, Phone, MessageSquare } from "lucide-react";
+import { MapPin, ChevronRight, Calendar, Bus, Phone, MessageSquare, Route } from "lucide-react";
 import { BusCard } from "./BusCard";
 import type { BusData } from "@/types/bus-route";
 import { mockBuses } from "@/types/bus-route";
@@ -14,7 +14,7 @@ interface BusListStepProps {
   genderPreference: string | null;
   onBookNow: (bus: BusData) => void;
   onJoinWaitlist: (bus: BusData) => void;
-  onWakeMeUp: (bus: BusData) => void;
+  onViewRoute: (bus: BusData) => void; // NEW
   onBack: () => void;
 }
 
@@ -25,7 +25,7 @@ export const BusListStep = ({
   genderPreference,
   onBookNow,
   onJoinWaitlist,
-  onWakeMeUp,
+  onViewRoute,
   onBack
 }: BusListStepProps) => {
   const filteredBuses = mockBuses.filter(
@@ -67,7 +67,12 @@ export const BusListStep = ({
               bus={bus}
               onBookNow={onBookNow}
               onJoinWaitlist={onJoinWaitlist}
-              onWakeMeUp={onWakeMeUp}
+              // Replace Wake Me Up with View Route
+              extraAction={{
+                label: "View Route",
+                icon: <Route className="h-4 w-4 mr-1" />,
+                onClick: () => onViewRoute(bus)
+              }}
             />
           ))}
         </TabsContent>

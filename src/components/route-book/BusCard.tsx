@@ -4,22 +4,28 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { 
-  Wifi, Coffee, Users, Star, Bell
+  Wifi, Coffee, Users, Star, Bell, Route
 } from "lucide-react";
 import type { BusData } from "@/types/bus-route";
+import React from "react";
 
 interface BusCardProps {
   bus: BusData;
   onBookNow: (bus: BusData) => void;
   onJoinWaitlist: (bus: BusData) => void;
-  onWakeMeUp: (bus: BusData) => void;
+  onWakeMeUp?: (bus: BusData) => void; // left for backward compat
+  extraAction?: {
+    label: string;
+    icon?: React.ReactNode;
+    onClick: () => void;
+  };
 }
 
 export const BusCard = ({
   bus,
   onBookNow,
   onJoinWaitlist,
-  onWakeMeUp
+  extraAction
 }: BusCardProps) => {
   return (
     <Card className={`go-card-hover overflow-hidden ${bus.womensOnly ? 'border-pink-300 bg-pink-50/30 dark:bg-pink-950/10' : ''}`}>
@@ -91,15 +97,12 @@ export const BusCard = ({
           </div>
 
           <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => onWakeMeUp(bus)}
-              title="Set reminder for this bus"
-            >
-              <Bell className="h-4 w-4 mr-1" />
-              Wake Me Up
-            </Button>
+            {extraAction && (
+              <Button variant="outline" size="sm" onClick={extraAction.onClick} title={extraAction.label}>
+                {extraAction.icon}
+                {extraAction.label}
+              </Button>
+            )}
 
             {bus.available > 0 ? (
               <Button size="sm" onClick={() => onBookNow(bus)}>
