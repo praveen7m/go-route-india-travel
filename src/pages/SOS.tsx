@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -19,7 +18,11 @@ import {
   User,
   Clock,
   CheckCircle,
-  XCircle
+  XCircle,
+  Users,
+  Ambulance,
+  FireExtinguisher,
+  Police
 } from "lucide-react";
 
 const SOS = () => {
@@ -33,7 +36,14 @@ const SOS = () => {
   });
   const [sosActivated, setSosActivated] = useState(false);
   
-  // Simulate location fetching
+  const emergencyNumbers = [
+    { name: "Police", number: "100", icon: <Police className="h-4 w-4" /> },
+    { name: "Ambulance", number: "108", icon: <Ambulance className="h-4 w-4" /> },
+    { name: "Fire Engine", number: "101", icon: <FireExtinguisher className="h-4 w-4" /> },
+    { name: "Women's Helpline", number: "1091", icon: <Users className="h-4 w-4" /> },
+    { name: "GoRoute Helpline", number: "1800-123-4567", icon: <Phone className="h-4 w-4" /> }
+  ];
+  
   useEffect(() => {
     setTimeout(() => {
       setLocation("Kempegowda Bus Station, Platform 4, Bengaluru");
@@ -48,7 +58,6 @@ const SOS = () => {
     });
   };
   
-  // Handle countdown
   useEffect(() => {
     if (countdown === null) return;
     
@@ -59,7 +68,6 @@ const SOS = () => {
       
       return () => clearTimeout(timer);
     } else if (countdown === 0) {
-      // Activate SOS
       setSosActivated(true);
       setCountdown(null);
       toast.error("SOS Activated", {
@@ -83,7 +91,6 @@ const SOS = () => {
   };
   
   const callEmergencyContact = () => {
-    // In a real app, this would initiate a phone call
     toast.info(`Calling ${emergencyContact.name}...`);
   };
   
@@ -95,9 +102,19 @@ const SOS = () => {
     toast.success("Your location has been shared with emergency contacts");
   };
   
+  const shareLocationWithGuardian = () => {
+    toast.success("Location shared with guardian", {
+      description: "Your current location has been shared with your emergency contact"
+    });
+  };
+  
+  const callEmergencyNumber = (name: string, number: string) => {
+    toast.info(`Calling ${name} at ${number}`);
+    // In a real app, this would initiate a phone call
+  };
+  
   return (
     <div className="go-container pb-10">
-      {/* Header with back button */}
       <div className="flex items-center mb-6">
         <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
           <ArrowLeft className="h-5 w-5" />
@@ -105,7 +122,6 @@ const SOS = () => {
         <h1 className="text-2xl font-bold ml-2">Emergency SOS</h1>
       </div>
       
-      {/* Location Card */}
       <Card className="mb-6">
         <CardContent className="p-4">
           <div className="flex items-start gap-3">
@@ -115,10 +131,18 @@ const SOS = () => {
               <p className="text-sm text-muted-foreground">{location}</p>
             </div>
           </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="mt-3 w-full"
+            onClick={shareLocationWithGuardian}
+          >
+            <Share className="mr-2 h-4 w-4" />
+            Share Location with Guardian
+          </Button>
         </CardContent>
       </Card>
       
-      {/* Main SOS Card */}
       <Card className={sosActivated ? "bg-red-50 dark:bg-red-950/20 border-red-300 mb-6" : "mb-6"}>
         <CardHeader className="pb-2">
           <CardTitle className="flex items-center gap-2 text-red-600">
@@ -208,8 +232,7 @@ const SOS = () => {
         </CardContent>
       </Card>
       
-      {/* Emergency Contact Card */}
-      <Card>
+      <Card className="mb-6">
         <CardHeader className="pb-2">
           <CardTitle className="text-base flex items-center gap-2">
             <User className="h-4 w-4" />
@@ -240,6 +263,34 @@ const SOS = () => {
               Call Now
             </Button>
           </div>
+        </CardContent>
+      </Card>
+      
+      <Card>
+        <CardHeader className="pb-2">
+          <CardTitle className="text-base flex items-center gap-2">
+            <Phone className="h-4 w-4" />
+            Emergency Numbers
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {emergencyNumbers.map((emergency, index) => (
+            <div key={index} className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                {emergency.icon}
+                <span>{emergency.name}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="text-sm font-medium">{emergency.number}</span>
+                <Button 
+                  size="sm" 
+                  onClick={() => callEmergencyNumber(emergency.name, emergency.number)}
+                >
+                  Call
+                </Button>
+              </div>
+            </div>
+          ))}
         </CardContent>
       </Card>
     </div>

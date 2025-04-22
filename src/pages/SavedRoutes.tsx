@@ -6,9 +6,11 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import {
-  Star, StarOff, Navigation, Bus, Train, MapPin, Clock, Bell, BellOff,
-  ArrowRight, AlertTriangle, Info, Trash2, Calendar, Heart, HeartOff
+  Star, Navigation, Bus, Train, MapPin, Clock, Bell,
+  ArrowRight, AlertTriangle, Info, Trash2, Calendar, Heart, HeartOff, Route, Map
 } from "lucide-react";
+
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 
 const SavedRoutes = () => {
   // Mock saved routes data
@@ -23,7 +25,15 @@ const SavedRoutes = () => {
       time: "Daily, 8:30 AM",
       isFavorite: true,
       hasAlerts: true,
-      lastUsed: "Today"
+      lastUsed: "Today",
+      path: [
+        { name: "Indiranagar Bus Stop", time: "8:30 AM" },
+        { name: "Domlur", time: "8:42 AM" },
+        { name: "HAL", time: "8:55 AM" },
+        { name: "Marathahalli", time: "9:10 AM" },
+        { name: "Kundalahalli", time: "9:25 AM" },
+        { name: "Whitefield", time: "9:40 AM" }
+      ]
     },
     {
       id: 2,
@@ -35,7 +45,15 @@ const SavedRoutes = () => {
       time: "Weekends",
       isFavorite: false,
       hasAlerts: true,
-      lastUsed: "Yesterday"
+      lastUsed: "Yesterday",
+      path: [
+        { name: "MG Road Metro", time: "10:00 AM" },
+        { name: "Trinity", time: "10:05 AM" },
+        { name: "Halasuru", time: "10:10 AM" },
+        { name: "Indiranagar Metro", time: "10:15 AM" },
+        { name: "Airport Bus Terminal", time: "10:30 AM" },
+        { name: "Airport", time: "11:00 AM" }
+      ]
     },
     {
       id: 3,
@@ -47,9 +65,19 @@ const SavedRoutes = () => {
       time: "Occasional",
       isFavorite: false,
       hasAlerts: false,
-      lastUsed: "Last week"
+      lastUsed: "Last week",
+      path: [
+        { name: "JP Nagar Bus Stop", time: "11:00 AM" },
+        { name: "Jayanagar", time: "11:15 AM" },
+        { name: "Lalbagh", time: "11:25 AM" },
+        { name: "MG Road Metro", time: "11:40 AM" },
+        { name: "Commercial Street", time: "12:00 PM" }
+      ]
     }
   ]);
+  
+  const [selectedRoute, setSelectedRoute] = useState<any>(null);
+  const [showRouteDetails, setShowRouteDetails] = useState(false);
   
   const handleToggleFavorite = (id: number) => {
     setSavedRoutes(routes => 
@@ -80,6 +108,11 @@ const SavedRoutes = () => {
   const handleAddRoute = () => {
     // In a real app, this would navigate to a form or trigger a modal
     toast.success("Route added to saved routes");
+  };
+  
+  const handleViewRoute = (route: any) => {
+    setSelectedRoute(route);
+    setShowRouteDetails(true);
   };
   
   const getRouteIcon = (type: string) => {
@@ -199,6 +232,14 @@ const SavedRoutes = () => {
                     >
                       <Trash2 className="h-4 w-4" />
                     </Button>
+                    <Button 
+                      size="sm"
+                      variant="outline"
+                      onClick={() => handleViewRoute(route)}
+                    >
+                      <Route className="mr-2 h-4 w-4" />
+                      View Route
+                    </Button>
                     <Button size="sm">
                       Use Route
                     </Button>
@@ -222,6 +263,53 @@ const SavedRoutes = () => {
           </div>
         </CardContent>
       </Card>
+      
+      {/* Route Details Dialog */}
+      <Dialog open={showRouteDetails} onOpenChange={setShowRouteDetails}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedRoute && getRouteIcon(selectedRoute.type)}
+              {selectedRoute?.name} Route
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            {/* Route Map Preview (in real app, this would be an actual map) */}
+            <Card className="bg-muted/20 p-4 flex items-center justify-center h-40">
+              <div className="text-center">
+                <Map className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
+                <p className="text-sm text-muted-foreground">Route Map Preview</p>
+              </div>
+            </Card>
+            
+            {/* Route Points */}
+            <div className="space-y-3">
+              <h3 className="text-sm font-medium">Route Path</h3>
+              
+              {selectedRoute?.path.map((point: any, index: number) => (
+                <div key={index} className="relative pl-6">
+                  {index < (selectedRoute?.path.length - 1) && (
+                    <div className="absolute left-[9px] top-6 w-[2px] h-[calc(100%-24px)] bg-muted-foreground/30"></div>
+                  )}
+                  <div className="flex items-center gap-3">
+                    <div className={`rounded-full w-5 h-5 flex items-center justify-center 
+                      ${index === 0 ? 'bg-green-100 text-green-600' : 
+                        index === selectedRoute?.path.length - 1 ? 'bg-red-100 text-red-600' : 
+                        'bg-blue-100 text-blue-600'}`}>
+                      <span className="text-xs font-bold">{index + 1}</span>
+                    </div>
+                    <div>
+                      <p className="font-medium text-sm">{point.name}</p>
+                      <p className="text-xs text-muted-foreground">{point.time}</p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
