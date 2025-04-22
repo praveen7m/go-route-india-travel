@@ -1,6 +1,6 @@
 
 import { Link, useLocation } from "react-router-dom";
-import { Home, Navigation, Star, User, Radio } from "lucide-react";
+import { Home, Navigation, Star, Cog, Radio } from "lucide-react";
 import { useLanguage } from "@/hooks/useLanguage";
 
 const BottomNav = () => {
@@ -31,9 +31,9 @@ const BottomNav = () => {
       path: "/saved-routes",
     },
     {
-      icon: <User size={20} />,
-      label: "Profile",
-      path: "/profile",
+      icon: <Cog size={20} />,
+      label: "Settings",
+      path: "/settings",
     },
   ];
 

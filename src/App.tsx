@@ -20,6 +20,7 @@ import MultiModalResults from "@/pages/MultiModalResults";
 import NotFound from "@/pages/NotFound";
 import SavedRoutes from "@/pages/SavedRoutes";
 import RouteOverview from "@/pages/RouteOverview";
+import Settings from "@/pages/Settings";  // New import
 
 const queryClient = new QueryClient();
 
@@ -45,6 +46,7 @@ const App = () => (
                 <Route path="sos" element={<SOS />} />
                 <Route path="saved-routes" element={<SavedRoutes />} />
                 <Route path="route-overview" element={<RouteOverview />} />
+                <Route path="settings" element={<Settings />} />  {/* New route */}
               </Route>
               <Route path="*" element={<NotFound />} />
             </Routes>
