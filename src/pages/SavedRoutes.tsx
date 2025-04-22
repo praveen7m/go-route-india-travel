@@ -1,4 +1,3 @@
-
 import React, { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -273,39 +272,38 @@ const SavedRoutes = () => {
               {selectedRoute?.name} Route
             </DialogTitle>
           </DialogHeader>
-          
-          <div className="space-y-4">
-            {/* Route Map Preview (in real app, this would be an actual map) */}
+          <div className="space-y-4 overflow-y-auto max-h-80">
+            {/* Route Map Preview (placeholder) */}
             <Card className="bg-muted/20 p-4 flex items-center justify-center h-40">
               <div className="text-center">
                 <Map className="h-10 w-10 text-muted-foreground mx-auto mb-2" />
                 <p className="text-sm text-muted-foreground">Route Map Preview</p>
               </div>
             </Card>
-            
             {/* Route Points */}
             <div className="space-y-3">
-              <h3 className="text-sm font-medium">Route Path</h3>
-              
-              {selectedRoute?.path.map((point: any, index: number) => (
-                <div key={index} className="relative pl-6">
-                  {index < (selectedRoute?.path.length - 1) && (
-                    <div className="absolute left-[9px] top-6 w-[2px] h-[calc(100%-24px)] bg-muted-foreground/30"></div>
-                  )}
-                  <div className="flex items-center gap-3">
-                    <div className={`rounded-full w-5 h-5 flex items-center justify-center 
-                      ${index === 0 ? 'bg-green-100 text-green-600' : 
-                        index === selectedRoute?.path.length - 1 ? 'bg-red-100 text-red-600' : 
-                        'bg-blue-100 text-blue-600'}`}>
-                      <span className="text-xs font-bold">{index + 1}</span>
-                    </div>
-                    <div>
-                      <p className="font-medium text-sm">{point.name}</p>
-                      <p className="text-xs text-muted-foreground">{point.time}</p>
+              <h3 className="text-sm font-medium">Full Journey Path</h3>
+              <div className="space-y-2">
+                {selectedRoute?.path.map((point: any, index: number) => (
+                  <div key={index} className="relative pl-6">
+                    {index < (selectedRoute?.path.length - 1) && (
+                      <div className="absolute left-[9px] top-6 w-[2px] h-[calc(100%-24px)] bg-muted-foreground/30"></div>
+                    )}
+                    <div className="flex items-center gap-3">
+                      <div className={`rounded-full w-5 h-5 flex items-center justify-center 
+                        ${index === 0 ? 'bg-green-100 text-green-600' : 
+                          index === selectedRoute?.path.length - 1 ? 'bg-red-100 text-red-600' : 
+                          'bg-blue-100 text-blue-600'}`}>
+                        <span className="text-xs font-bold">{index + 1}</span>
+                      </div>
+                      <div>
+                        <p className="font-medium text-sm">{point.name}</p>
+                        <p className="text-xs text-muted-foreground">{point.time}</p>
+                      </div>
                     </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </DialogContent>

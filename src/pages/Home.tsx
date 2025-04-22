@@ -148,27 +148,64 @@ const Home = () => {
             <Calendar className="h-5 w-5 text-accent" />
             {t("home.bookingHistory")}
           </h2>
-          <Button variant="link" size="sm">View All</Button>
+          <Button variant="link" size="sm" disabled>View All</Button>
         </div>
         <div className="overflow-x-auto pb-2">
           <div className="flex gap-4 min-w-max">
-            {[1, 2].map((i) => (
+            {[
+              {
+                origin: "Bangalore",
+                dest: "Mysore",
+                bus: "KSRTC Volvo",
+                seat: "A4",
+                price: "₹450",
+                status: "Completed",
+                time: "3 days ago"
+              },
+              {
+                origin: "Chennai",
+                dest: "Pondicherry",
+                bus: "TNSTC Express",
+                seat: "C12",
+                price: "₹310",
+                status: "Completed",
+                time: "1 week ago"
+              },
+              {
+                origin: "Delhi",
+                dest: "Agra",
+                bus: "Jan Rath",
+                seat: "B1",
+                price: "₹600",
+                status: "Completed",
+                time: "2 weeks ago"
+              },
+              {
+                origin: "Hyderabad",
+                dest: "Warangal",
+                bus: "TSRTC Garuda",
+                seat: "D7",
+                price: "₹390",
+                status: "Completed",
+                time: "1 month ago"
+              },
+            ].map((history, i) => (
               <Card key={i} className="w-72 go-card-hover">
                 <CardContent className="p-4">
                   <div className="flex justify-between items-center mb-3">
-                    <div className="go-badge go-badge-green">Completed</div>
-                    <span className="text-xs text-muted-foreground">3 days ago</span>
+                    <div className="go-badge go-badge-green">{history.status}</div>
+                    <span className="text-xs text-muted-foreground">{history.time}</span>
                   </div>
                   <div className="flex flex-col gap-2">
                     <div className="flex justify-between">
-                      <span className="text-sm font-medium">Bangalore</span>
+                      <span className="text-sm font-medium">{history.origin}</span>
                       <span className="text-sm">→</span>
-                      <span className="text-sm font-medium">Mysore</span>
+                      <span className="text-sm font-medium">{history.dest}</span>
                     </div>
                     <div className="flex items-center justify-between text-xs text-muted-foreground">
-                      <span>KSRTC Volvo</span>
-                      <span>Seat: A4</span>
-                      <span>₹450</span>
+                      <span>{history.bus}</span>
+                      <span>Seat: {history.seat}</span>
+                      <span>{history.price}</span>
                     </div>
                   </div>
                 </CardContent>
@@ -207,7 +244,6 @@ const Home = () => {
         </div>
       </section>
 
-      {/* Add the floating chatbot button */}
       <FloatingChatButton />
     </div>
   );

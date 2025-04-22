@@ -1,26 +1,27 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { MessageSquare } from "lucide-react";
+import { User } from "lucide-react";
 import { useNavigate } from 'react-router-dom';
 
-const FloatingChatButton = () => {
+// Profile button bottom right
+const FloatingProfileButton = () => {
   const navigate = useNavigate();
 
-  const handleChatbotClick = () => {
-    navigate('/chatbot');
+  const handleProfileClick = () => {
+    navigate('/profile');
   };
 
   return (
     <Button
-      onClick={handleChatbotClick}
+      onClick={handleProfileClick}
       className="fixed bottom-20 right-4 z-50 rounded-full w-12 h-12 shadow-lg bg-accent hover:bg-accent/90"
       size="icon"
-      aria-label="Chat with assistant"
+      aria-label="Profile"
     >
-      <MessageSquare className="h-5 w-5" />
+      <User className="h-5 w-5" />
     </Button>
   );
 };
 
-export default FloatingChatButton;
+export default FloatingProfileButton;

@@ -19,6 +19,7 @@ const CityBus = () => {
   const [toLocation, setToLocation] = useState("");
   const [searchResults, setSearchResults] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [liveTrackingBus, setLiveTrackingBus] = useState<string | null>(null);
 
   const handleSearch = () => {
     if (!fromLocation || !toLocation) {
@@ -45,6 +46,7 @@ const CityBus = () => {
     toast.success("Tracking Activated", {
       description: `You are now tracking Bus ${busNumber}.`
     });
+    setLiveTrackingBus(busNumber);
   };
 
   const getCrowdBadge = (level: string) => {
@@ -182,16 +184,33 @@ const CityBus = () => {
       </Card>
 
       {searchResults && (
-        <CityBusBusList
-          buses={buses}
-          fromLocation={fromLocation}
-          toLocation={toLocation}
-          onWakeMeUp={handleWakeMeUp}
-          onTrackBus={handleTrackBus}
-          getCrowdBadge={getCrowdBadge}
-          getCrowdBarColor={getCrowdBarColor}
-          getCrowdBarWidth={getCrowdBarWidth}
-        />
+        <>
+          <CityBusBusList
+            buses={buses}
+            fromLocation={fromLocation}
+            toLocation={toLocation}
+            onWakeMeUp={handleWakeMeUp}
+            onTrackBus={handleTrackBus}
+            getCrowdBadge={getCrowdBadge}
+            getCrowdBarColor={getCrowdBarColor}
+            getCrowdBarWidth={getCrowdBarWidth}
+            trackButtonLabel="Live Track"
+          />
+          {liveTrackingBus && (
+            <Card className="mt-4 border-2 border-accent">
+              <CardContent className="p-4 flex flex-col items-center gap-2">
+                <Bus className="h-6 w-6 text-accent mb-1" />
+                <h3 className="text-lg font-semibold">
+                  Live Tracking: Bus {liveTrackingBus}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  <span className="animate-pulse">The bus is currently approaching your stop. ETA: 2 min.</span><br />
+                  Live location updates will appear here.
+                </p>
+              </CardContent>
+            </Card>
+          )}
+        </>
       )}
     </div>
   );
