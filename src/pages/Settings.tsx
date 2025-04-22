@@ -16,7 +16,7 @@ import { useNavigate } from 'react-router-dom';
 
 const Settings: React.FC = () => {
   const { setTheme, theme } = useTheme();
-  const { t, changeLanguage } = useLanguage();
+  const { t, setLanguage } = useLanguage();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -53,11 +53,14 @@ const Settings: React.FC = () => {
             <DropdownMenuContent>
               <DropdownMenuLabel>Select Language</DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => changeLanguage('en')}>
+              <DropdownMenuItem onClick={() => setLanguage('en')}>
                 English
               </DropdownMenuItem>
-              <DropdownMenuItem onClick={() => changeLanguage('hi')}>
+              <DropdownMenuItem onClick={() => setLanguage('hi')}>
                 Hindi
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setLanguage('ta')}>
+                Tamil
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>

@@ -7,9 +7,10 @@ type LanguageContextType = {
   t: (key: string) => string;
 };
 
-// Basic translations for demonstration
+// Extended translations for demonstration
 const translations: Record<string, Record<string, string>> = {
   en: {
+    "language.current": "English",
     "home.routeBus": "Route Bus",
     "home.cityBus": "City Bus",
     "home.chatbot": "Chatbot",
@@ -38,6 +39,7 @@ const translations: Record<string, Record<string, string>> = {
     "sos.callHelpline": "Call Helpline",
   },
   hi: {
+    "language.current": "हिंदी",
     "home.routeBus": "रूट बस",
     "home.cityBus": "शहरी बस",
     "home.chatbot": "चैटबॉट",
@@ -66,6 +68,7 @@ const translations: Record<string, Record<string, string>> = {
     "sos.callHelpline": "हेल्पलाइन को कॉल करें",
   },
   ta: {
+    "language.current": "தமிழ்",
     "home.routeBus": "வழி பேருந்து",
     "home.cityBus": "நகர பேருந்து",
     "home.chatbot": "உரையாடல் உதவியாளர்",
