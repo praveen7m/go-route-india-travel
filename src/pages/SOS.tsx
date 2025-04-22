@@ -21,8 +21,8 @@ import {
   XCircle,
   Users,
   Ambulance,
-  FireExtinguisher,
-  Police
+  Activity,
+  ShieldAlert
 } from "lucide-react";
 
 const SOS = () => {
@@ -37,9 +37,9 @@ const SOS = () => {
   const [sosActivated, setSosActivated] = useState(false);
   
   const emergencyNumbers = [
-    { name: "Police", number: "100", icon: <Police className="h-4 w-4" /> },
+    { name: "Police", number: "100", icon: <ShieldAlert className="h-4 w-4" /> },
     { name: "Ambulance", number: "108", icon: <Ambulance className="h-4 w-4" /> },
-    { name: "Fire Engine", number: "101", icon: <FireExtinguisher className="h-4 w-4" /> },
+    { name: "Fire Engine", number: "101", icon: <Activity className="h-4 w-4" /> },
     { name: "Women's Helpline", number: "1091", icon: <Users className="h-4 w-4" /> },
     { name: "GoRoute Helpline", number: "1800-123-4567", icon: <Phone className="h-4 w-4" /> }
   ];

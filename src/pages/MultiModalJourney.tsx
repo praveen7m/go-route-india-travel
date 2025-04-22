@@ -26,11 +26,7 @@ const MultiModalJourney = () => {
 
   const handleSearch = () => {
     if (!from || !to) {
-      toast({
-        title: "Error",
-        description: "Please enter both source and destination",
-        variant: "destructive"
-      });
+      toast.error("Please enter both source and destination");
       return;
     }
     
