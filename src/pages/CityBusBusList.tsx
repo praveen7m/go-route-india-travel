@@ -23,6 +23,7 @@ interface CityBusBusListProps {
   getCrowdBadge: (level: string) => React.ReactNode;
   getCrowdBarColor: (level: string) => string;
   getCrowdBarWidth: (level: string) => string;
+  trackButtonLabel?: string; // Added the missing prop
 }
 
 export function CityBusBusList({
@@ -34,6 +35,7 @@ export function CityBusBusList({
   getCrowdBadge,
   getCrowdBarColor,
   getCrowdBarWidth,
+  trackButtonLabel = "Track", // Default value if not provided
 }: CityBusBusListProps) {
   return (
     <div className="space-y-3">
@@ -55,9 +57,9 @@ export function CityBusBusList({
           getCrowdBadge={getCrowdBadge}
           getCrowdBarColor={getCrowdBarColor}
           getCrowdBarWidth={getCrowdBarWidth}
+          trackButtonLabel={trackButtonLabel} // Pass the prop to the card component
         />
       ))}
     </div>
   );
 }
-

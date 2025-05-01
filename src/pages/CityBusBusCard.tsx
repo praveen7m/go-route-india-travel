@@ -22,6 +22,7 @@ interface CityBusBusCardProps {
   getCrowdBadge: (level: string) => React.ReactNode;
   getCrowdBarColor: (level: string) => string;
   getCrowdBarWidth: (level: string) => string;
+  trackButtonLabel?: string;
 }
 
 export function CityBusBusCard({
@@ -31,6 +32,7 @@ export function CityBusBusCard({
   getCrowdBadge,
   getCrowdBarColor,
   getCrowdBarWidth,
+  trackButtonLabel = "Track",
 }: CityBusBusCardProps) {
   return (
     <Card 
@@ -102,7 +104,7 @@ export function CityBusBusCard({
               className="ml-2"
               onClick={() => onTrackBus(bus.number)}
             >
-              Track
+              {trackButtonLabel}
             </Button>
           </div>
         </div>
