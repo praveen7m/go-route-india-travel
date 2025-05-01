@@ -1,181 +1,173 @@
-import { useState } from "react";
-import { useLanguage } from "@/hooks/useLanguage";
-import { Button } from "@/components/ui/button";
+
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent } from "@/components/ui/card";
-import { 
-  MapPin, Search, RefreshCw, Bus, Clock, BellRing, Users, ArrowRight, 
-  AlertCircle
-} from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Switch } from "@/components/ui/switch";
+import { 
+  MapPin, 
+  Search, 
+  ArrowRight, 
+  AlertCircle, 
+  Clock
+} from "lucide-react";
 import { toast } from "sonner";
 import { CityBusBusList } from "./CityBusBusList";
+import WakeMeUpModal from "@/components/bus/WakeMeUpModal";
+import { busService, CityBus as CityBusType } from "@/services/busService";
+import { useQuery, useMutation } from "@tanstack/react-query";
+import BusTrackingView from "@/components/bus/BusTrackingView";
 
 const CityBus = () => {
-  const { t } = useLanguage();
+  const navigate = useNavigate();
   const [fromLocation, setFromLocation] = useState("");
   const [toLocation, setToLocation] = useState("");
-  const [searchResults, setSearchResults] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [liveTrackingBus, setLiveTrackingBus] = useState<string | null>(null);
+  const [showWakeMeUpModal, setShowWakeMeUpModal] = useState(false);
+  const [selectedBus, setSelectedBus] = useState<{number: string; destination: string; arrivalTime: string} | null>(null);
+  const [showTrackingView, setShowTrackingView] = useState(false);
+  const [busToTrack, setBusToTrack] = useState<string | null>(null);
+
+  // Query to fetch city buses
+  const { data: buses, isLoading, error, refetch } = useQuery({
+    queryKey: ['cityBuses', fromLocation, toLocation],
+    queryFn: () => busService.getCityBuses(fromLocation, toLocation),
+    enabled: false, // Don't fetch on component mount
+  });
+
+  // Mutation for wake me up
+  const wakeMeUpMutation = useMutation({
+    mutationFn: (params: { busNumber: string, minutesBefore: number, notifyOptions: any }) => 
+      busService.setWakeMeUp(params.busNumber, params.minutesBefore, params.notifyOptions),
+    onSuccess: () => {
+      toast.success("Wake Me Up alert set successfully");
+    },
+    onError: (error) => {
+      toast.error("Failed to set alert");
+    }
+  });
 
   const handleSearch = () => {
     if (!fromLocation || !toLocation) {
-      toast("Please enter both from and to locations");
+      toast.error("Please enter both from and to locations");
       return;
     }
-    
-    setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      setSearchResults(true);
-      setIsLoading(false);
-    }, 1500);
+    refetch();
   };
 
   const handleWakeMeUp = (busNumber: string) => {
-    toast.success("Wake Me Up Activated", {
-      description: `You'll be notified before ${busNumber} arrives at your stop.`
-    });
+    const bus = buses?.data?.find((b) => b.number === busNumber);
+    if (bus) {
+      setSelectedBus({
+        number: bus.number,
+        destination: toLocation,
+        arrivalTime: bus.arrivalTime
+      });
+      setShowWakeMeUpModal(true);
+    }
   };
 
   const handleTrackBus = (busNumber: string) => {
-    toast.success("Tracking Activated", {
-      description: `You are now tracking Bus ${busNumber}.`
-    });
-    setLiveTrackingBus(busNumber);
+    setBusToTrack(busNumber);
+    setShowTrackingView(true);
   };
 
   const getCrowdBadge = (level: string) => {
-    switch (level) {
-      case "low":
-        return <Badge variant="outline" className="bg-green-50 text-green-600 border-green-200">Low Crowd</Badge>;
-      case "medium":
-        return <Badge variant="outline" className="bg-orange-50 text-orange-600 border-orange-200">Medium Crowd</Badge>;
-      case "high":
-        return <Badge variant="outline" className="bg-red-50 text-red-600 border-red-200">High Crowd</Badge>;
-      default:
-        return null;
+    if (level === "low") {
+      return (
+        <Badge variant="outline" className="bg-green-100 text-green-700 border-green-200">
+          <Users className="h-3 w-3 mr-1" /> Low Crowd
+        </Badge>
+      );
+    } else if (level === "medium") {
+      return (
+        <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-200">
+          <Users className="h-3 w-3 mr-1" /> Medium Crowd
+        </Badge>
+      );
+    } else {
+      return (
+        <Badge variant="outline" className="bg-red-100 text-red-700 border-red-200">
+          <Users className="h-3 w-3 mr-1" /> Heavy Crowd
+        </Badge>
+      );
     }
   };
 
   const getCrowdBarColor = (level: string) => {
-    switch (level) {
-      case "low": 
-        return "bg-green-500";
-      case "medium": 
-        return "bg-orange-500";
-      case "high": 
-        return "bg-red-500";
-      default:
-        return "bg-gray-500";
-    }
+    if (level === "low") return "bg-green-500";
+    if (level === "medium") return "bg-orange-500";
+    return "bg-red-500";
   };
 
   const getCrowdBarWidth = (level: string) => {
-    switch (level) {
-      case "low": 
-        return "30%";
-      case "medium": 
-        return "60%";
-      case "high": 
-        return "90%";
-      default:
-        return "0%";
-    }
+    if (level === "low") return "30%";
+    if (level === "medium") return "60%";
+    return "90%";
   };
 
-  const buses = [
-    {
-      id: 1,
-      number: "500A",
-      route: "Indiranagar to Majestic",
-      arrivalTime: "5 mins",
-      nextBus: "15 mins",
-      crowdLevel: "low",
-      cost: "₹35",
-      distance: "7.2 km",
-      estimatedTime: "25 mins"
-    },
-    {
-      id: 2,
-      number: "401M",
-      route: "Whitefield to Majestic",
-      arrivalTime: "12 mins",
-      nextBus: "25 mins",
-      crowdLevel: "medium",
-      cost: "₹45",
-      distance: "12.5 km",
-      estimatedTime: "40 mins"
-    },
-    {
-      id: 3,
-      number: "300K",
-      route: "Electronic City to Shivajinagar",
-      arrivalTime: "20 mins",
-      nextBus: "40 mins",
-      crowdLevel: "high",
-      cost: "₹50",
-      distance: "15.8 km",
-      estimatedTime: "55 mins"
-    },
-  ];
+  if (showTrackingView && busToTrack) {
+    return (
+      <BusTrackingView
+        busNumber={busToTrack}
+        onBack={() => {
+          setShowTrackingView(false);
+          setBusToTrack(null);
+        }}
+      />
+    );
+  }
 
   return (
-    <div className="go-container space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold mb-2">{t("cityBus.title")}</h1>
+    <div className="go-container space-y-6 pb-16">
+      <div className="space-y-2">
+        <h1 className="text-2xl font-bold">City Bus</h1>
         <p className="text-muted-foreground">Find and track city buses in real-time</p>
       </div>
 
       <Card>
-        <CardContent className="p-6">
-          <div className="space-y-4">
+        <CardContent className="p-5 space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label htmlFor="from">From Location</Label>
+              <Label htmlFor="from">From</Label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
+                <Input 
                   id="from"
-                  placeholder="Enter your starting point"
+                  placeholder="Enter starting point"
                   className="pl-9"
                   value={fromLocation}
                   onChange={(e) => setFromLocation(e.target.value)}
                 />
               </div>
             </div>
-
             <div className="space-y-2">
-              <Label htmlFor="to">To Location</Label>
+              <Label htmlFor="to">To</Label>
               <div className="relative">
                 <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
+                <Input 
                   id="to"
-                  placeholder="Enter your destination"
+                  placeholder="Enter destination"
                   className="pl-9"
                   value={toLocation}
                   onChange={(e) => setToLocation(e.target.value)}
                 />
               </div>
             </div>
-
-            <Button 
-              className="w-full" 
-              onClick={handleSearch}
-              disabled={!fromLocation || !toLocation || isLoading}
-            >
+          </div>
+          
+          <div className="flex justify-end">
+            <Button onClick={handleSearch} disabled={isLoading}>
               {isLoading ? (
                 <>
-                  <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                  <Clock className="mr-2 h-4 w-4 animate-spin" />
                   Searching...
                 </>
               ) : (
                 <>
                   <Search className="mr-2 h-4 w-4" />
-                  {t("cityBus.findBuses")}
+                  Search Buses
                 </>
               )}
             </Button>
@@ -183,35 +175,40 @@ const CityBus = () => {
         </CardContent>
       </Card>
 
-      {searchResults && (
-        <>
-          <CityBusBusList
-            buses={buses}
-            fromLocation={fromLocation}
-            toLocation={toLocation}
-            onWakeMeUp={handleWakeMeUp}
-            onTrackBus={handleTrackBus}
-            getCrowdBadge={getCrowdBadge}
-            getCrowdBarColor={getCrowdBarColor}
-            getCrowdBarWidth={getCrowdBarWidth}
-            trackButtonLabel="Live Track"
-          />
-          {liveTrackingBus && (
-            <Card className="mt-4 border-2 border-accent">
-              <CardContent className="p-4 flex flex-col items-center gap-2">
-                <Bus className="h-6 w-6 text-accent mb-1" />
-                <h3 className="text-lg font-semibold">
-                  Live Tracking: Bus {liveTrackingBus}
-                </h3>
-                <p className="text-sm text-muted-foreground">
-                  <span className="animate-pulse">The bus is currently approaching your stop. ETA: 2 min.</span><br />
-                  Live location updates will appear here.
-                </p>
-              </CardContent>
-            </Card>
-          )}
-        </>
+      {error && (
+        <div className="bg-red-50 text-red-700 p-4 rounded-lg flex items-start space-x-2">
+          <AlertCircle className="h-5 w-5 flex-shrink-0" />
+          <div>
+            <p className="font-medium">Error loading buses</p>
+            <p className="text-sm">Please try again or check your connection</p>
+          </div>
+        </div>
       )}
+
+      {buses && buses.data && buses.data.length > 0 ? (
+        <CityBusBusList
+          buses={buses.data}
+          fromLocation={fromLocation}
+          toLocation={toLocation}
+          onWakeMeUp={handleWakeMeUp}
+          onTrackBus={handleTrackBus}
+          getCrowdBadge={getCrowdBadge}
+          getCrowdBarColor={getCrowdBarColor}
+          getCrowdBarWidth={getCrowdBarWidth}
+          trackButtonLabel="Live Track" // Use "Live Track" instead of "Track"
+        />
+      ) : buses?.data && buses.data.length === 0 ? (
+        <div className="text-center p-8 bg-muted/30 rounded-lg">
+          <h3 className="font-medium text-lg">No buses found</h3>
+          <p className="text-muted-foreground mt-1">Try different locations or check back later</p>
+        </div>
+      ) : null}
+
+      <WakeMeUpModal
+        open={showWakeMeUpModal}
+        onClose={() => setShowWakeMeUpModal(false)}
+        busDetails={selectedBus}
+      />
     </div>
   );
 };

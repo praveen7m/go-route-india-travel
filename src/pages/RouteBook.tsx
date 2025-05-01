@@ -1,96 +1,112 @@
 
-import { useState } from "react";
-import { useLanguage } from "@/hooks/useLanguage";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { Card } from "@/components/ui/card";
+import { ArrowLeft } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 import { SearchStep } from "@/components/route-book/SearchStep";
 import { GenderPreferenceStep } from "@/components/route-book/GenderPreferenceStep";
 import { BusListStep } from "@/components/route-book/BusListStep";
-import { toast } from "sonner";
 import type { BusData } from "@/types/bus-route";
-import { busStops } from "@/types/bus-route";
+import { busService } from "@/services/busService";
+import { useQuery } from "@tanstack/react-query";
 import WaitlistModal from "@/components/bus/WaitlistModal";
-import WakeMeUpModal from "@/components/bus/WakeMeUpModal";
-import BusTrackingView from "@/components/bus/BusTrackingView";
-import BusSeatSelector from "@/components/bus/BusSeatSelector";
-import BookedTicketModal from "@/components/bus/BookedTicketModal";
 
 const RouteBook = () => {
-  const { t } = useLanguage();
-  const [step, setStep] = useState(1);
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  
+  // Search parameters
   const [fromCity, setFromCity] = useState("");
   const [toCity, setToCity] = useState("");
   const [travelDate, setTravelDate] = useState("");
-  const [busNumber, setBusNumber] = useState(""); // NEW
+  const [busNumber, setBusNumber] = useState("");
   const [genderPreference, setGenderPreference] = useState<string | null>(null);
-  const [selectedBus, setSelectedBus] = useState<BusData | null>(null);
-  const [showWaitlistModal, setShowWaitlistModal] = useState(false);
-  const [showWakeMeUpModal, setShowWakeMeUpModal] = useState(false);
-  const [showTrackingView, setShowTrackingView] = useState(false);
-  const [wakeMeUpBus, setWakeMeUpBus] = useState<BusData | null>(null);
+  
+  // Flow control
+  const [currentStep, setCurrentStep] = useState("search");
+  
+  // Waitlist modal
+  const [waitlistModalOpen, setWaitlistModalOpen] = useState(false);
+  const [selectedBusForWaitlist, setSelectedBusForWaitlist] = useState<{number: string; from: string; to: string;} | null>(null);
 
-  const [showSeatSelector, setShowSeatSelector] = useState(false); // NEW
-  const [bookedTicket, setBookedTicket] = useState<{ bus: BusData; seats: string[]; amount: number } | null>(null); // NEW
+  // Query to fetch buses
+  const { data: busesData, isLoading, refetch } = useQuery({
+    queryKey: ['routeBuses', fromCity, toCity, travelDate, busNumber],
+    queryFn: () => busService.getAvailableBuses(fromCity, toCity, travelDate),
+    enabled: false, // Don't fetch automatically
+  });
 
   const handleSearch = () => {
-    if (!fromCity || !toCity || !travelDate) return;
-    setStep(2);
+    if (fromCity && toCity && travelDate) {
+      setCurrentStep("gender");
+    }
   };
 
-  const handleGenderSubmit = () => {
-    if (!genderPreference) {
-      toast("Gender preference is required for your safety and comfort.");
-      return;
-    }
-    setStep(3);
-    if (genderPreference === "womens_only") {
-      toast("Showing women's special buses and regular buses.");
-    } else {
-      toast("Showing all available buses.");
-    }
+  const handleGenderSelect = (preference: string | null) => {
+    setGenderPreference(preference);
+    setCurrentStep("list");
+    refetch(); // Now fetch the buses
   };
 
   const handleBookNow = (bus: BusData) => {
-    setSelectedBus(bus);
-    setShowSeatSelector(true);
+    navigate("/route-overview", { state: { routeData: {
+      from: fromCity,
+      to: toCity,
+      date: travelDate,
+      busId: bus.id,
+      busNumber: bus.number,
+      busType: bus.type,
+      departureTime: bus.departure,
+      arrivalTime: bus.arrival
+    }}});
   };
 
   const handleJoinWaitlist = (bus: BusData) => {
-    setSelectedBus(bus);
-    setShowWaitlistModal(true);
-  };
-
-  const handleWakeMeUp = (bus: BusData) => {
-    setWakeMeUpBus(bus);
-    setShowWakeMeUpModal(true);
+    setSelectedBusForWaitlist({
+      number: bus.number,
+      from: fromCity,
+      to: toCity
+    });
+    setWaitlistModalOpen(true);
   };
 
   const handleViewRoute = (bus: BusData) => {
-    setSelectedBus(bus);
-    setShowTrackingView(true);
+    // Navigate to route overview with the bus data
+    navigate("/route-overview", { state: { routeData: {
+      from: fromCity,
+      to: toCity,
+      isBest: true,
+      totalFare: bus.price,
+      totalTime: bus.duration,
+      segments: [
+        {
+          type: "bus",
+          name: bus.number,
+          departureTime: bus.departure,
+          arrivalTime: bus.arrival,
+          from: fromCity,
+          to: toCity,
+          duration: bus.duration,
+          fare: bus.price,
+          status: "on-time"
+        }
+      ]
+    }}});
   };
 
-  const handleCloseTracking = () => {
-    setShowTrackingView(false);
+  const handleBack = () => {
+    if (currentStep === "gender") {
+      setCurrentStep("search");
+    } else if (currentStep === "list") {
+      setCurrentStep("gender");
+    }
   };
 
-  // When seats are selected and paid
-  const handleSeatsBooked = (bus: BusData, seats: string[], amount: number) => {
-    setShowSeatSelector(false);
-    setBookedTicket({ bus, seats, amount });
-    toast.success("Booking confirmed! You can now view your ticket.");
-  };
-
-  const handleCloseTicket = () => setBookedTicket(null);
-
-  return (
-    <div className="go-container space-y-6 pb-10">
-      <div>
-        <h1 className="text-2xl font-bold mb-2">{t("routeBus.title")}</h1>
-        <p className="text-muted-foreground">
-          Book tickets for interstate and long-distance travel
-        </p>
-      </div>
-
-      {step === 1 && (
+  let currentStepComponent;
+  switch (currentStep) {
+    case "search":
+      currentStepComponent = (
         <SearchStep
           fromCity={fromCity}
           toCity={toCity}
@@ -102,18 +118,18 @@ const RouteBook = () => {
           onBusNumberChange={setBusNumber}
           onSearch={handleSearch}
         />
-      )}
-
-      {step === 2 && (
+      );
+      break;
+    case "gender":
+      currentStepComponent = (
         <GenderPreferenceStep
-          genderPreference={genderPreference}
-          onGenderPreferenceChange={setGenderPreference}
-          onSubmit={handleGenderSubmit}
-          onBack={() => setStep(1)}
+          onSelect={handleGenderSelect}
+          onBack={() => setCurrentStep("search")}
         />
-      )}
-
-      {step === 3 && (
+      );
+      break;
+    case "list":
+      currentStepComponent = (
         <BusListStep
           fromCity={fromCity}
           toCity={toCity}
@@ -122,78 +138,40 @@ const RouteBook = () => {
           onBookNow={handleBookNow}
           onJoinWaitlist={handleJoinWaitlist}
           onViewRoute={handleViewRoute}
-          onBack={() => setStep(1)}
+          onBack={handleBack}
         />
+      );
+      break;
+    default:
+      currentStepComponent = null;
+  }
+
+  return (
+    <div className="go-container space-y-6 pb-16">
+      {currentStep !== "search" && (
+        <button
+          onClick={handleBack}
+          className="flex items-center text-muted-foreground hover:text-foreground transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4 mr-1" />
+          Back
+        </button>
       )}
 
-      {/* Seat Layout Modal */}
-      {showSeatSelector && selectedBus && (
-        <BusSeatSelector
-          open={showSeatSelector}
-          onOpenChange={setShowSeatSelector}
-          busInfo={{
-            name: selectedBus.type,
-            from: selectedBus.from,
-            to: selectedBus.to,
-            departureTime: selectedBus.departure,
-            arrivalTime: selectedBus.arrival,
-            duration: selectedBus.duration,
-            date: travelDate,
-          }}
-          // Custom prop for when booking is complete - overload onOpenChange
-          onBookComplete={(seats: string[], amount: number) =>
-            handleSeatsBooked(selectedBus, seats, amount)
-          }
-        />
-      )}
+      <div>
+        <h1 className="text-2xl font-bold">Book a Bus Ticket</h1>
+        <p className="text-muted-foreground mt-1">
+          Find and book intercity bus tickets
+        </p>
+      </div>
 
-      {/* Booked Ticket Modal */}
-      {bookedTicket && (
-        <BookedTicketModal
-          open={!!bookedTicket}
-          onClose={handleCloseTicket}
-          ticket={{
-            ...bookedTicket,
-            travelDate
-          }}
-          onWakeMeUp={() => setShowWakeMeUpModal(true)}
-        />
-      )}
+      {currentStepComponent}
 
-      {showWaitlistModal && selectedBus && (
-        <WaitlistModal
-          open={showWaitlistModal}
-          onClose={() => setShowWaitlistModal(false)}
-          busDetails={{
-            number: selectedBus.number,
-            from: selectedBus.from,
-            to: selectedBus.to
-          }}
-        />
-      )}
-
-      {showWakeMeUpModal && (wakeMeUpBus || (bookedTicket && bookedTicket.bus)) && (
-        <WakeMeUpModal
-          open={showWakeMeUpModal}
-          onClose={() => setShowWakeMeUpModal(false)}
-          busDetails={{
-            number: wakeMeUpBus?.number || bookedTicket?.bus.number || "",
-            destination: wakeMeUpBus?.to || bookedTicket?.bus.to || "",
-            arrivalTime: wakeMeUpBus?.arrival || bookedTicket?.bus.arrival || ""
-          }}
-        />
-      )}
-
-      {showTrackingView && selectedBus && (
-        <BusTrackingView
-          busName={selectedBus.type}
-          busNumber={selectedBus.number}
-          fromTo={`${selectedBus.from} to ${selectedBus.to}`}
-          currentDate={travelDate}
-          stops={busStops}
-          onClose={handleCloseTracking}
-        />
-      )}
+      <WaitlistModal
+        open={waitlistModalOpen}
+        onClose={() => setWaitlistModalOpen(false)}
+        busDetails={selectedBusForWaitlist}
+      />
     </div>
   );
 };

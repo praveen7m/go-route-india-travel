@@ -3,7 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
-import { Users, Clock, RefreshCw } from "lucide-react";
+import { Users, Clock } from "lucide-react";
 
 interface CityBusBusCardProps {
   bus: {
